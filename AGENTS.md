@@ -49,10 +49,50 @@ A plugin is a scene plus the behavior that occurs inside it.
 
 - Plugins register themselves with the host (name, description, category, icon/thumbnail, entry points).
 - The host never reaches into plugin internals. Communication happens through a narrow, stable interface the host defines.
-- A plugin may be activated, deactivated, and destroyed. The host owns the lifetime of the activation; the plugin owns its scene state while active.
+- A plugin may be activated, deactivated, and destroyed. The host owns that lifetime. See Plugin roles. Deactivate and destroy end a run. They do not remove the plugin.
 - Plugins must be able to run with the host's memory, error, and parallelism model (see below). Memory allocation failures should be treated as fatal to simplify error handling.
 - Plugins submit jobs to the host scheduler. They do not create their own threads for host or scene data.
 - File associations, "New X", or command-palette entries are how plugins advertise entry points; the host routes them.
+
+## Plugin roles
+
+Three roles handle every plugin. The steps in a role stay the same for a person, for CI, and for an agent.
+
+### Author
+
+The author writes the plugin and publishes it.
+
+1. Bootstrap a workspace.
+2. Create the plugin.
+3. Change it.
+4. Validate its contract.
+5. Test, debug, and inspect it.
+6. Add tests for missing behavior.
+7. Set its semantic version.
+8. Publish it to that plugin's own git remote.
+
+Create and publish include the plugin's media. Media loads from disk, from an archive, and embedded in the binary.
+
+### Caller
+
+The caller finds plugins and invokes them. The caller may also be the author.
+
+1. Query the catalog. The catalog includes plugins shipped with the host, plugins in a directory, and plugins in a git repo.
+2. Get a version.
+3. Run one or more plugins and pass their arguments.
+4. Get a newer version when one is published.
+5. Remove a plugin. Remove deletes its source and its registration.
+
+### Host
+
+The host owns the plugin for the length of a run.
+
+1. Register it, so the catalog and its entry points can see it.
+2. Activate it.
+3. Deactivate it.
+4. Destroy it.
+
+Create registers a local plugin. Get registers a fetched one. Deactivate ends a run and leaves the plugin in place. Destroy drops that run's scene state. Remove is a caller step.
 
 ## Coding Standards
 
@@ -185,15 +225,9 @@ Get the code working and tested, then refactor. Correctness comes first. Cleanli
 
 - Default expectation: a pull request adds a plugin, removes a plugin, or changes logic inside one or more plugins.
 - Changes to the host layer (scene management, launcher, command palette, plugin interface, core services) require an explicit rationale and exemplify "invent and simplify".
-- When adding a plugin:
-  1. Implement the scene and its behavior behind the stable plugin interface.
-  2. Register it so it appears in the launcher and command palette.
-  3. Add or update tests for any non-trivial logic.
-  4. Ensure the build remains warning-free.
-  5. Provide sane defaults so plugins look professional, even if not fully complete.
-- Static resources such as images should be embedded in the host, as opposed to shipped separately on disk. This reduces the number of resources that we need to deploy with the application. Generally speaking, Ascend Forge is a single, statically linked application that can run plugins, either embedded in the binary like Love2D games, via a plugin archive, or via a plugin directory, with an opinionated file system layout and convention.
-- Media must be supported from disk, in an archive, and embedded in the binary itself.
-- When removing a plugin, delete its registration and its source; do not leave dead code or commented-out registration.
+- When adding a plugin, follow the author role. The plugin appears in the launcher and command palette, the build stays warning-free, and defaults look finished.
+- Static resources such as images are embedded in the host, so the application does not ship them as loose files. Ascend Forge runs plugins embedded in the binary, from a plugin archive, or from a plugin directory. Author create and publish include this media. A running plugin loads it from disk, from an archive, or from the binary.
+- When removing a plugin, follow the caller role. Delete its registration and its source. Do not leave dead code or a commented-out registration.
 - Keep the plugin interface stable. Extending it is preferable to breaking it. If a breaking change is unavoidable, document the migration clearly.
 - Prefer data-oriented changes inside plugins over introducing new abstraction layers in the host.
 
@@ -208,6 +242,8 @@ A request carries the plugins, the entry points, and the arguments for that call
 Discovery is part of the surface. A caller can read the catalog: names, versions, entry points, argument contracts, and dependencies, and can validate a request before running it.
 
 Results are data. A failure names the plugin, what the contract expected, what arrived, and what would make the request valid. The caller that started the work can read the result, the status, and the log.
+
+A caller follows the caller role. Every way of invoking the host follows the host role for the length of the request.
 
 ## Agentic Callers
 
@@ -230,6 +266,9 @@ When generating or modifying code:
 - Keep CLI, GUI, library, network, and RPC as transports for that same request.
 - Expose discovery, validation, and results as data so an agent can choose the next call.
 - Connect a specific agent product through an adapter. Leave the host contract product-neutral.
+- Follow the author role when writing a plugin: version it, include its media, and publish it to that plugin's git remote.
+- Follow the caller role when discovering or invoking a plugin: query the built-in catalog, a directory, or a git URL, then get, run, upgrade, and remove.
+- Leave register, activate, deactivate, and destroy to the host. Remove is a caller step.
 - Write plain, explicit, initialized C. Use SDL types. Avoid NULL in high-level code.
 - Allocate from arenas. Treat allocation failure as fatal.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
