@@ -71,7 +71,7 @@ The author writes the plugin and publishes it.
 7. Set its semantic version.
 8. Publish it to that plugin's own git remote.
 
-Create and publish include the plugin's media. Media loads from disk, from an archive, and embedded in the binary.
+Create and publish include the plugin's media. A plugin reads media from disk, from one packed archive, or embedded in the binary. Publish yields one self-contained binary, or one packed archive when the data is large. Embedded media may be encrypted with a symmetric key.
 
 ### Caller
 
@@ -185,7 +185,7 @@ Test defensively. The point of a test is to prove correctness, not to show that 
 - Use a minimal minunit-style pattern: simple assertion macros, a test runner that can be compiled into the same binary or a separate test target, and clear pass/fail reporting.
 - Tests live close to the code they exercise. Prefer testing pure logic and data-model functions over full UI scenes.
 - Every public module should have corresponding tests for its core invariants.
-- Follow Go conventions for this project's testing conventions.
+- Follow Go conventions for testing. Discovery, selection, filtering, and verbosity follow `go test`.
 - Cover the happy path and the error paths. Add cases for empty input, single-element input, boundary values, rejected input, and broken invariants. Each case should state what was given and what must be true afterward.
 - One behavior per test. Keep tests clean and focused: a short setup, one action, and assertions that check the contract. Do not reuse a test as a second scenario by stacking unrelated checks.
 - Assert the result and the state that must not change. When a function returns an error, check the error and check that outputs were left untouched.
@@ -226,7 +226,7 @@ Get the code working and tested, then refactor. Correctness comes first. Cleanli
 - Default expectation: a pull request adds a plugin, removes a plugin, or changes logic inside one or more plugins.
 - Changes to the host layer (scene management, launcher, command palette, plugin interface, core services) require an explicit rationale and exemplify "invent and simplify".
 - When adding a plugin, follow the author role. The plugin appears in the launcher and command palette, the build stays warning-free, and defaults look finished.
-- Static resources such as images are embedded in the host, so the application does not ship them as loose files. Ascend Forge runs plugins embedded in the binary, from a plugin archive, or from a plugin directory. Author create and publish include this media. A running plugin loads it from disk, from an archive, or from the binary.
+- Static resources such as images are embedded in the host, so the application does not ship them as loose files. A plugin reads media from disk, from one packed archive, or from the binary. Publish yields one self-contained binary, or one packed archive when the data is large. Embedded media may be encrypted with a symmetric key.
 - When removing a plugin, follow the caller role. Delete its registration and its source. Do not leave dead code or a commented-out registration.
 - Keep the plugin interface stable. Extending it is preferable to breaking it. If a breaking change is unavoidable, document the migration clearly.
 - Prefer data-oriented changes inside plugins over introducing new abstraction layers in the host.
