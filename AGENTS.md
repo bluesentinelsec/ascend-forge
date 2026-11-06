@@ -197,11 +197,39 @@ Get the code working and tested, then refactor. Correctness comes first. Cleanli
 - Keep the plugin interface stable. Extending it is preferable to breaking it. If a breaking change is unavoidable, document the migration clearly.
 - Prefer data-oriented changes inside plugins over introducing new abstraction layers in the host.
 
+## Invocation Surface
+
+The host has one invocation surface. A caller names one or more plugins and supplies their arguments. The host resolves the plugins, checks the arguments against each plugin's contract, runs them, and returns results.
+
+CLI, GUI, shared library, network, and RPC are transports for that surface. They differ in how the request arrives. They agree on which plugins run, which arguments those plugins see, and what a result means. Arguments follow the plugin contract, so a caller can pass the inputs that the plugin defines.
+
+A request carries the plugins, the entry points, and the arguments for that call. Ambient configuration keeps its existing precedence: CLI, then a user config file, then defaults. A caller can supply the overrides for that request so the run can be repeated.
+
+Discovery is part of the surface. A caller can read the catalog: names, versions, entry points, argument contracts, and dependencies, and can validate a request before running it.
+
+Results are data. A failure names the plugin, what the contract expected, what arrived, and what would make the request valid. The caller that started the work can read the result, the status, and the log.
+
+## Agentic Callers
+
+Agentic programs such as Grok, Codex, and Claude are callers of this surface. The host contract is product-neutral. A particular agent product connects through an adapter, and the adapter carries the same request and the same result as every other transport.
+
+The surface serves those callers well when:
+
+- Discovery, validation, invocation, and results are available with no person operating the GUI.
+- One request can name several plugins and can pass arguments among them when the caller asks for that.
+- Plugin contracts are explicit and stable, so a caller can remember what a plugin accepts and can tell when the contract changes.
+- Validation happens before expensive work.
+- The result is sufficient for the caller to choose the next request.
+
 ## Summary for Agents
 
 When generating or modifying code:
 
 - Stay inside the plugin model. Do not expand the host unless the task explicitly requires it.
+- Invoke plugins through the shared request surface. A request names plugins and arguments; the response returns results.
+- Keep CLI, GUI, library, network, and RPC as transports for that same request.
+- Expose discovery, validation, and results as data so an agent can choose the next call.
+- Connect a specific agent product through an adapter. Leave the host contract product-neutral.
 - Write plain, explicit, initialized C. Use SDL types. Avoid NULL in high-level code.
 - Allocate from arenas. Treat allocation failure as fatal.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
