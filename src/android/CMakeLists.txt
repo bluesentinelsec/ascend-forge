@@ -1,0 +1,23 @@
+# Android Prefab library. Gradle publishes this target as the `ascend_forge`
+# module in the AAR. Whole-archive linking keeps every public C++ API symbol
+# while folding the static core library into one shared object.
+add_library(ascend_forge SHARED android_library.cpp)
+
+target_compile_features(ascend_forge PUBLIC cxx_std_20)
+target_include_directories(ascend_forge
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${ASCEND_FORGE_GENERATED_INCLUDE_DIR}>
+)
+
+add_dependencies(ascend_forge ${PROJECT_NAME}_lib)
+target_link_options(ascend_forge
+  PRIVATE
+    "LINKER:--whole-archive,$<TARGET_FILE:${PROJECT_NAME}_lib>,--no-whole-archive"
+)
+
+set_target_properties(ascend_forge PROPERTIES
+  OUTPUT_NAME ascend_forge
+)
+
+cppboot_set_project_warnings(ascend_forge)

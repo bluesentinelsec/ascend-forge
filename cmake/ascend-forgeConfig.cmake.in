@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/ascend-forgeTargets.cmake")
+
+check_required_components(ascend-forge)

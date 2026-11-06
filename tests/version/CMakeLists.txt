@@ -1,0 +1,10 @@
+add_executable(ascend_forge_version_test
+  version_test.cpp
+)
+target_link_libraries(ascend_forge_version_test
+  PRIVATE
+    ${PROJECT_NAME}_lib
+    GTest::gtest_main
+)
+cppboot_set_project_warnings(ascend_forge_version_test)
+gtest_discover_tests(ascend_forge_version_test)
