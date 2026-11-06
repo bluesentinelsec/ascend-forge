@@ -11,6 +11,10 @@ set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
 set(SDL_INSTALL_TESTS OFF CACHE BOOL "" FORCE)
+# Linux configure stops when X11 and Wayland headers are both missing.
+# This static library is the C runtime for primitives, not a window system.
+# Real window backends are still built when those headers are present.
+set(SDL_UNIX_CONSOLE_BUILD ON CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
   SDL
