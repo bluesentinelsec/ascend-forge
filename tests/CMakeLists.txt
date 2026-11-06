@@ -6,3 +6,6 @@ if(EMSCRIPTEN)
 endif()
 
 add_subdirectory(version)
+if(ASCEND_FORGE_BUILD_PRIMITIVES)
+  add_subdirectory(arena)
+endif()

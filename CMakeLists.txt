@@ -100,6 +100,17 @@ option(ASCEND_FORGE_BUILD_BENCHMARKS "Build benchmarks" ${ASCEND_FORGE_DEFAULT_B
 # HTML5 canvas demo page for top-level Emscripten builds (see src/web/).
 option(ASCEND_FORGE_BUILD_WEB_DEMO "Build the web canvas demo (Emscripten only)" ${ASCEND_FORGE_IS_TOP_LEVEL})
 
+# First-party C primitives. Desktop links static SDL3. Android, iOS, and
+# Emscripten stay on the dependency-free core until that static link lands.
+set(ASCEND_FORGE_DEFAULT_BUILD_PRIMITIVES ${ASCEND_FORGE_IS_TOP_LEVEL})
+if(ANDROID OR IOS OR EMSCRIPTEN)
+  set(ASCEND_FORGE_DEFAULT_BUILD_PRIMITIVES OFF)
+endif()
+option(ASCEND_FORGE_BUILD_PRIMITIVES
+  "Build the C primitive library (arena and later primitives)"
+  ${ASCEND_FORGE_DEFAULT_BUILD_PRIMITIVES}
+)
+
 if(ANDROID AND (ASCEND_FORGE_BUILD_APP OR ASCEND_FORGE_BUILD_TESTS OR ASCEND_FORGE_BUILD_BENCHMARKS))
   message(FATAL_ERROR
     "Android builds provide the ascend_forge Prefab library; set ASCEND_FORGE_BUILD_APP, "
@@ -138,6 +149,12 @@ endif()
 option(ASCEND_FORGE_ENABLE_SANITIZERS "Enable Address+UBSan on project targets" OFF)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Dependencies.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CWarnings.cmake")
+
+if(ASCEND_FORGE_BUILD_PRIMITIVES)
+  enable_language(C)
+  include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/SdlStatic.cmake")
+endif()
 
 # Apply sanitizer flags only to targets created after this point (not FetchContent deps).
 if(ASCEND_FORGE_ENABLE_SANITIZERS)
@@ -234,6 +251,7 @@ include(GNUInstallDirs)
 install(DIRECTORY include/
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+  PATTERN "arena.h" EXCLUDE
 )
 # Generated version API header (from VERSION + cmake/version.hpp.in).
 install(DIRECTORY ${ASCEND_FORGE_GENERATED_INCLUDE_DIR}/

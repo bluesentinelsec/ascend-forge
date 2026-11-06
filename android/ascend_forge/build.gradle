@@ -75,6 +75,8 @@ tasks.register("preparePrefabHeaders") {
             from new File(repositoryRoot, "include")
             into prefabHeaders
             include "**/*.h", "**/*.hpp"
+            // The arena header needs static SDL3, which this package does not link yet.
+            exclude "**/arena.h"
         }
 
         def components = packageVersion.tokenize(".-")

@@ -87,6 +87,8 @@ combine_archives "${simulator_build}" "${combined_root}/libascend_forge-iphonesi
 cmake -E make_directory "${headers_root}/ascend_forge"
 cmake -E copy_directory "${repository_root}/include/ascend_forge" "${headers_root}/ascend_forge"
 cmake -E rm -f "${headers_root}/ascend_forge/.gitkeep"
+# The arena header needs static SDL3, which this package does not link yet.
+cmake -E rm -f "${headers_root}/ascend_forge/arena.h"
 cmake -E copy "${device_build}/generated/include/ascend_forge/version.hpp" \
     "${headers_root}/ascend_forge/version.hpp"
 
