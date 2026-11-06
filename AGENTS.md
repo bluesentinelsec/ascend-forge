@@ -49,10 +49,50 @@ A plugin is a scene plus the behavior that occurs inside it.
 
 - Plugins register themselves with the host (name, description, category, icon/thumbnail, entry points).
 - The host never reaches into plugin internals. Communication happens through a narrow, stable interface the host defines.
-- A plugin may be activated, deactivated, and destroyed. The host owns the lifetime of the activation; the plugin owns its scene state while active.
+- A plugin may be activated, deactivated, and destroyed. The host owns that lifetime. See Plugin roles. Deactivate and destroy end a run. They do not remove the plugin.
 - Plugins must be able to run with the host's memory, error, and parallelism model (see below). Memory allocation failures should be treated as fatal to simplify error handling.
 - Plugins submit jobs to the host scheduler. They do not create their own threads for host or scene data.
 - File associations, "New X", or command-palette entries are how plugins advertise entry points; the host routes them.
+
+## Plugin roles
+
+Three roles handle every plugin. The steps in a role stay the same for a person, for CI, and for an agent.
+
+### Author
+
+The author writes the plugin and publishes it.
+
+1. Bootstrap a workspace.
+2. Create the plugin.
+3. Change it.
+4. Validate its contract.
+5. Test, debug, and inspect it.
+6. Add tests for missing behavior.
+7. Set its semantic version.
+8. Publish it to that plugin's own git remote.
+
+Create and publish include the plugin's media. A plugin reads media from disk, from one packed archive, or embedded in the binary. Publish yields one self-contained binary, or one packed archive when the data is large. Embedded media may be encrypted with a symmetric key.
+
+### Caller
+
+The caller finds plugins and invokes them. The caller may also be the author.
+
+1. Query the catalog. The catalog includes plugins shipped with the host, plugins in a directory, and plugins in a git repo.
+2. Get a version.
+3. Run one or more plugins and pass their arguments.
+4. Get a newer version when one is published.
+5. Remove a plugin. Remove deletes its source and its registration.
+
+### Host
+
+The host owns the plugin for the length of a run.
+
+1. Register it, so the catalog and its entry points can see it.
+2. Activate it.
+3. Deactivate it.
+4. Destroy it.
+
+Create registers a local plugin. Get registers a fetched one. Deactivate ends a run and leaves the plugin in place. Destroy drops that run's scene state. Remove is a caller step.
 
 ## Coding Standards
 
@@ -145,7 +185,7 @@ Test defensively. The point of a test is to prove correctness, not to show that 
 - Use a minimal minunit-style pattern: simple assertion macros, a test runner that can be compiled into the same binary or a separate test target, and clear pass/fail reporting.
 - Tests live close to the code they exercise. Prefer testing pure logic and data-model functions over full UI scenes.
 - Every public module should have corresponding tests for its core invariants.
-- Follow Go conventions for this project's testing conventions.
+- Follow Go conventions for testing. Discovery, selection, filtering, and verbosity follow `go test`.
 - Cover the happy path and the error paths. Add cases for empty input, single-element input, boundary values, rejected input, and broken invariants. Each case should state what was given and what must be true afterward.
 - One behavior per test. Keep tests clean and focused: a short setup, one action, and assertions that check the contract. Do not reuse a test as a second scenario by stacking unrelated checks.
 - Assert the result and the state that must not change. When a function returns an error, check the error and check that outputs were left untouched.
@@ -185,17 +225,21 @@ Get the code working and tested, then refactor. Correctness comes first. Cleanli
 
 - Default expectation: a pull request adds a plugin, removes a plugin, or changes logic inside one or more plugins.
 - Changes to the host layer (scene management, launcher, command palette, plugin interface, core services) require an explicit rationale and exemplify "invent and simplify".
-- When adding a plugin:
-  1. Implement the scene and its behavior behind the stable plugin interface.
-  2. Register it so it appears in the launcher and command palette.
-  3. Add or update tests for any non-trivial logic.
-  4. Ensure the build remains warning-free.
-  5. Provide sane defaults so plugins look professional, even if not fully complete.
-- Static resources such as images should be embedded in the host, as opposed to shipped separately on disk. This reduces the number of resources that we need to deploy with the application. Generally speaking, Ascend Forge is a single, statically linked application that can run plugins, either embedded in the binary like Love2D games, via a plugin archive, or via a plugin directory, with an opinionated file system layout and convention.
-- Media must be supported from disk, in an archive, and embedded in the binary itself.
-- When removing a plugin, delete its registration and its source; do not leave dead code or commented-out registration.
+- When adding a plugin, follow the author role. The plugin appears in the launcher and command palette, the build stays warning-free, and defaults look finished.
+- Static resources such as images are embedded in the host, so the application does not ship them as loose files. A plugin reads media from disk, from one packed archive, or from the binary. Publish yields one self-contained binary, or one packed archive when the data is large. Embedded media may be encrypted with a symmetric key.
+- When removing a plugin, follow the caller role. Delete its registration and its source. Do not leave dead code or a commented-out registration.
 - Keep the plugin interface stable. Extending it is preferable to breaking it. If a breaking change is unavoidable, document the migration clearly.
 - Prefer data-oriented changes inside plugins over introducing new abstraction layers in the host.
+
+## UX documents
+
+Docs under `docs/ux/` are living documents, one per way of invoking the host. `docs/ux/cli.md` is the CLI.
+
+While a surface is still being built, its UX doc is the roadmap. Implement the feature so the behavior matches the doc. The CLI is in this phase. The commands in `docs/ux/cli.md` are the goal, and the host does not implement them yet.
+
+When the goals in a UX doc are met, that doc switches to maintenance. It then describes what the implementation does. A behavior change updates the doc in the same change. A doc that disagrees with the implementation is wrong.
+
+A pull request that only changes these docs does not need to wait for CI.
 
 ## Invocation Surface
 
@@ -208,6 +252,8 @@ A request carries the plugins, the entry points, and the arguments for that call
 Discovery is part of the surface. A caller can read the catalog: names, versions, entry points, argument contracts, and dependencies, and can validate a request before running it.
 
 Results are data. A failure names the plugin, what the contract expected, what arrived, and what would make the request valid. The caller that started the work can read the result, the status, and the log.
+
+A caller follows the caller role. Every way of invoking the host follows the host role for the length of the request.
 
 ## Agentic Callers
 
@@ -230,6 +276,10 @@ When generating or modifying code:
 - Keep CLI, GUI, library, network, and RPC as transports for that same request.
 - Expose discovery, validation, and results as data so an agent can choose the next call.
 - Connect a specific agent product through an adapter. Leave the host contract product-neutral.
+- Follow the author role when writing a plugin: version it, include its media, and publish it to that plugin's git remote.
+- Follow the caller role when discovering or invoking a plugin: query the built-in catalog, a directory, or a git URL, then get, run, upgrade, and remove.
+- Leave register, activate, deactivate, and destroy to the host. Remove is a caller step.
+- Treat `docs/ux/` as living. Follow the UX doc while that surface is unfinished. After its goals are met, update the doc in the same change as the behavior.
 - Write plain, explicit, initialized C. Use SDL types. Avoid NULL in high-level code.
 - Allocate from arenas. Treat allocation failure as fatal.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
