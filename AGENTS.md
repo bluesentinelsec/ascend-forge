@@ -231,6 +231,16 @@ Get the code working and tested, then refactor. Correctness comes first. Cleanli
 - Keep the plugin interface stable. Extending it is preferable to breaking it. If a breaking change is unavoidable, document the migration clearly.
 - Prefer data-oriented changes inside plugins over introducing new abstraction layers in the host.
 
+## UX documents
+
+Docs under `docs/ux/` are living documents, one per way of invoking the host. `docs/ux/cli.md` is the CLI.
+
+While a surface is still being built, its UX doc is the roadmap. Implement the feature so the behavior matches the doc. The CLI is in this phase. The commands in `docs/ux/cli.md` are the goal, and the host does not implement them yet.
+
+When the goals in a UX doc are met, that doc switches to maintenance. It then describes what the implementation does. A behavior change updates the doc in the same change. A doc that disagrees with the implementation is wrong.
+
+A pull request that only changes these docs does not need to wait for CI.
+
 ## Invocation Surface
 
 The host has one invocation surface. A caller names one or more plugins and supplies their arguments. The host resolves the plugins, checks the arguments against each plugin's contract, runs them, and returns results.
@@ -269,6 +279,7 @@ When generating or modifying code:
 - Follow the author role when writing a plugin: version it, include its media, and publish it to that plugin's git remote.
 - Follow the caller role when discovering or invoking a plugin: query the built-in catalog, a directory, or a git URL, then get, run, upgrade, and remove.
 - Leave register, activate, deactivate, and destroy to the host. Remove is a caller step.
+- Treat `docs/ux/` as living. Follow the UX doc while that surface is unfinished. After its goals are met, update the doc in the same change as the behavior.
 - Write plain, explicit, initialized C. Use SDL types. Avoid NULL in high-level code.
 - Allocate from arenas. Treat allocation failure as fatal.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
