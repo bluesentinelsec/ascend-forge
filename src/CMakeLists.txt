@@ -12,6 +12,7 @@ if(ASCEND_FORGE_BUILD_PRIMITIVES)
   add_subdirectory(thread)
   add_subdirectory(time)
   add_subdirectory(index)
+  add_subdirectory(fork)
 endif()
 # Example for new code:
 #   add_subdirectory(parser)

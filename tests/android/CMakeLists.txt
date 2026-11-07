@@ -15,6 +15,7 @@ add_library(ascend_forge_android_test SHARED
   "${CMAKE_CURRENT_SOURCE_DIR}/../thread/thread_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../time/time_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../index/index_test.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../fork/fork_test.c"
 )
 target_compile_features(ascend_forge_android_test PRIVATE c_std_17)
 target_compile_definitions(ascend_forge_android_test PRIVATE
@@ -28,6 +29,7 @@ target_compile_definitions(ascend_forge_android_test PRIVATE
   ASCEND_FORGE_THREAD_TESTS_NO_MAIN
   ASCEND_FORGE_TIME_TESTS_NO_MAIN
   ASCEND_FORGE_INDEX_TESTS_NO_MAIN
+  ASCEND_FORGE_FORK_TESTS_NO_MAIN
 )
 target_include_directories(ascend_forge_android_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include"
@@ -41,6 +43,7 @@ target_include_directories(ascend_forge_android_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../thread"
   "${CMAKE_CURRENT_SOURCE_DIR}/../time"
   "${CMAKE_CURRENT_SOURCE_DIR}/../index"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../fork"
 )
 get_target_property(ASCEND_FORGE_PREFAB_INCLUDES ascend_forge::ascend_forge
   INTERFACE_INCLUDE_DIRECTORIES
@@ -61,6 +64,7 @@ set_source_files_properties(
   "${CMAKE_CURRENT_SOURCE_DIR}/../thread/thread_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../time/time_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../index/index_test.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../fork/fork_test.c"
   PROPERTIES COMPILE_OPTIONS
     "-Wall;-Wextra;-Wpedantic;-Werror;-Wconversion;-Wshadow;-Wcast-align;-Wunused"
 )

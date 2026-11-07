@@ -224,6 +224,15 @@ The index range (`IndexRange_` in `include/ascend_forge/index.h`) is the usual j
 - The caller owns the input span, the write span, and the arena. This primitive does not look at them, does not allocate, and does not start a thread.
 - A null argument is logged and rejected. A failed call that writes an output leaves that output untouched.
 
+The fork-join (`ForkJoin_` in `include/ascend_forge/fork.h`) runs one index-range job on a caller-chosen number of workers.
+
+- The caller passes zeroed `Thread` storage and the count. This primitive does not size a pool.
+- `IndexRange_Split` cuts the parent into that many parts. Each worker walks its part with `IndexRange_ForEach` and writes only that part. An empty part still completes.
+- The completion count is an `AtomicU32` that starts at the worker count. The call returns after that count is zero.
+- Workers start with `Thread_Run` and the owner waits with `Thread_Join`. Workers do not call SDL window, event, or renderer functions.
+- On web, where threads do not start, the same call walks each part on the caller and the count still reaches zero.
+- A null argument, a worker count of zero, or a range whose end is before its begin is rejected and the function is not called. The temporary worker records are one SDL allocation freed before return. When that allocation fails, the call logs and exits.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.
@@ -408,6 +417,7 @@ When generating or modifying code:
 - Start a worker with `Thread_Run` and wait with `Thread_Join`. That worker does not call SDL window, event, or renderer APIs.
 - Read a duration with `Time_Now`. The clock is monotonic. It is not a wall clock.
 - Split work with `IndexRange_Split`. A job walks its half-open range with `IndexRange_ForEach` and writes only that range.
+- Run that split with `ForkJoin_Run`. The caller chooses the worker count. The call returns when the completion count is zero.
 - Keep primitives in the shared C library, statically linked to SDL3 on desktop, Android, iOS, and web, and run their tests on each of those platforms.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
 - Separate data, logic, and presentation.
