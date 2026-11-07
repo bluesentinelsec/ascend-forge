@@ -216,6 +216,14 @@ The time (`Time_` in `include/ascend_forge/time.h`) is the monotonic nanosecond 
 - The call does not allocate and does not start a thread.
 - A phase join reads this clock when it needs a duration. Higher layers do not call the SDL timer themselves.
 
+The index range (`IndexRange_` in `include/ascend_forge/index.h`) is the usual job shape. It is a half-open `[begin, end)` over a contiguous array.
+
+- Init rejects an end that is before begin and leaves the range untouched. An empty range has `begin == end`.
+- `IndexRange_ForEach` walks that range on the calling thread. An empty range calls the function zero times. The worker writes only indexes inside its range.
+- `IndexRange_Split` covers the parent with contiguous parts, no gap and no overlap. The first parts receive one extra index when the count does not divide evenly. A part past the last index is empty.
+- The caller owns the input span, the write span, and the arena. This primitive does not look at them, does not allocate, and does not start a thread.
+- A null argument is logged and rejected. A failed call that writes an output leaves that output untouched.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.
@@ -399,6 +407,7 @@ When generating or modifying code:
 - Publish a finished value with `Atomic_Publish`. Readers use `Atomic_Acquire`.
 - Start a worker with `Thread_Run` and wait with `Thread_Join`. That worker does not call SDL window, event, or renderer APIs.
 - Read a duration with `Time_Now`. The clock is monotonic. It is not a wall clock.
+- Split work with `IndexRange_Split`. A job walks its half-open range with `IndexRange_ForEach` and writes only that range.
 - Keep primitives in the shared C library, statically linked to SDL3 on desktop, Android, iOS, and web, and run their tests on each of those platforms.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
 - Separate data, logic, and presentation.
