@@ -174,6 +174,7 @@ File and path calls (`Io_` in `include/ascend_forge/io.h`) sit on SDL.
 JSON (`Json_` in `include/ascend_forge/json.h`) parses one immutable value into the caller's arena.
 
 - The reader is yyjson 0.13.0, vendored as ANSI C under `third_party/yyjson/` and compiled into the primitives library. It is not a public header, and its symbols stay hidden. No C++ JSON library is part of this primitive.
+- Emscripten Debug compiles `third_party/yyjson/yyjson.c` at `-O1`. At `-O0`, `yyjson_read_opts` has more Wasm locals than the browser allows. The rest of that debug build stays unoptimized. Release keeps the toolchain optimization.
 - yyjson is built freestanding. Its memory and string calls are `SDL_memcpy`, `SDL_memmove`, `SDL_memset`, `SDL_memcmp`, and `SDL_strlen`. It does not open files. `Json_` passes an arena allocator: growth copies into a new block, and free waits for the arena.
 - A string is a `Utf8` span. A number keeps its source span. Arrays and objects are contiguous ranges.
 - `Json_Stringify` appends to a `Utf8Builder`. A value can live in a private arena while the builder lives in another.

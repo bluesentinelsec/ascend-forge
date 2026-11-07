@@ -19,8 +19,15 @@ if(MSVC)
     PROPERTIES COMPILE_OPTIONS "/W0;/WX-"
   )
 else()
+  # Emscripten -O0 keeps one Wasm local per temporary in yyjson_read_opts.
+  # The browser rejects that function. -O1 on this file follows the Debug
+  # -O0 and is not applied to Release, where it would lower -O3.
+  set(ASCEND_FORGE_YYJSON_COMPILE_OPTIONS "-w;-fvisibility=hidden")
+  if(EMSCRIPTEN AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    string(APPEND ASCEND_FORGE_YYJSON_COMPILE_OPTIONS ";-O1")
+  endif()
   set_source_files_properties(${ASCEND_FORGE_YYJSON_C}
     TARGET_DIRECTORY ${PROJECT_NAME}_primitives
-    PROPERTIES COMPILE_OPTIONS "-w;-fvisibility=hidden"
+    PROPERTIES COMPILE_OPTIONS "${ASCEND_FORGE_YYJSON_COMPILE_OPTIONS}"
   )
 endif()
