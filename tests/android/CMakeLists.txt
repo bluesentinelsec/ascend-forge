@@ -12,6 +12,7 @@ add_library(ascend_forge_android_test SHARED
   "${CMAKE_CURRENT_SOURCE_DIR}/../json/json_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../slice/slice_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../atomic/atomic_test.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../thread/thread_test.c"
 )
 target_compile_features(ascend_forge_android_test PRIVATE cxx_std_20 c_std_17)
 target_compile_definitions(ascend_forge_android_test PRIVATE
@@ -22,6 +23,7 @@ target_compile_definitions(ascend_forge_android_test PRIVATE
   ASCEND_FORGE_JSON_TESTS_NO_MAIN
   ASCEND_FORGE_SLICE_TESTS_NO_MAIN
   ASCEND_FORGE_ATOMIC_TESTS_NO_MAIN
+  ASCEND_FORGE_THREAD_TESTS_NO_MAIN
 )
 target_include_directories(ascend_forge_android_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include"
@@ -32,6 +34,7 @@ target_include_directories(ascend_forge_android_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../json"
   "${CMAKE_CURRENT_SOURCE_DIR}/../slice"
   "${CMAKE_CURRENT_SOURCE_DIR}/../atomic"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../thread"
 )
 get_target_property(ASCEND_FORGE_PREFAB_INCLUDES ascend_forge::ascend_forge
   INTERFACE_INCLUDE_DIRECTORIES
@@ -49,6 +52,7 @@ set_source_files_properties(
   "${CMAKE_CURRENT_SOURCE_DIR}/../json/json_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../slice/slice_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../atomic/atomic_test.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../thread/thread_test.c"
   PROPERTIES COMPILE_OPTIONS
     "-Wall;-Wextra;-Wpedantic;-Werror;-Wconversion;-Wshadow;-Wcast-align;-Wunused"
 )
