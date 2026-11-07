@@ -60,6 +60,7 @@ jobs:
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/io.h" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/json.h" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/slice.h" aar-entries.txt
+          grep -qx "prefab/modules/ascend_forge/include/ascend_forge/atomic.h" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/SDL3/SDL.h" aar-entries.txt
           version="$(tr -d '[:space:]' < VERSION | sed 's/^v//;s/^V//;s/#.*//')"
           unzip -p "${aar}" prefab/prefab.json | grep -q "\"version\"[[:space:]]*:[[:space:]]*\"${version}\""
@@ -72,6 +73,7 @@ jobs:
           grep -q 'Io_ReadFile' "${symbols}"
           grep -q 'Json_Parse' "${symbols}"
           grep -q 'Slice_Append' "${symbols}"
+          grep -q 'AtomicU32_Load' "${symbols}"
           grep -q 'SDL_malloc' "${symbols}"
           if grep -q 'yyjson_' "${symbols}"; then
             echo "yyjson symbols are exported from the Android library" >&2

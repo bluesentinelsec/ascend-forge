@@ -192,6 +192,14 @@ The slice (`Slice_` in `include/ascend_forge/slice.h`) is the preferred dynamic 
 - Element alignment is the type's alignment, and that alignment is a power of two.
 - Remove compacts the range. It does not free. The arena owns the bytes.
 
+The atomic (`Atomic_` in `include/ascend_forge/atomic.h`) publishes a finished value and counts completed jobs.
+
+- `AtomicU32` wraps `SDL_AtomicU32`. Init happens before any other caller can reach it. Load, store, add, and compare-and-swap are the operations. Add returns the previous value.
+- Callers share the address of a counter. They do not copy it.
+- `AtomicPointer_Init` stores the unpublished null. `Atomic_Publish` applies a release barrier and then stores a pointer. `Atomic_Acquire` loads that pointer and applies an acquire barrier before the caller reads the value.
+- The primitive does not allocate and does not start a thread.
+- A null counter or slot is logged and rejected. A failed call that writes an output leaves that output untouched.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.
@@ -370,6 +378,7 @@ When generating or modifying code:
 - Write plain, explicit, initialized C. Use SDL types. Avoid NULL in high-level code.
 - Allocate from arenas. Treat allocation failure as fatal.
 - Prefer `Slice_` for a dynamic collection. Keep its elements in the caller's arena.
+- Publish a finished value with `Atomic_Publish`. Readers use `Atomic_Acquire`.
 - Keep primitives in the shared C library, statically linked to SDL3 on desktop, Android, iOS, and web, and run their tests on each of those platforms.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
 - Separate data, logic, and presentation.

@@ -270,6 +270,7 @@ else()
     PATTERN "io.h" EXCLUDE
     PATTERN "json.h" EXCLUDE
     PATTERN "slice.h" EXCLUDE
+    PATTERN "atomic.h" EXCLUDE
   )
 endif()
 # Generated version API header (from VERSION + cmake/version.hpp.in).
