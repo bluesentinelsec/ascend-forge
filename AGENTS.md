@@ -200,6 +200,15 @@ The atomic (`Atomic_` in `include/ascend_forge/atomic.h`) publishes a finished v
 - The primitive does not allocate and does not start a thread.
 - A null counter or slot is logged and rejected. A failed call that writes an output leaves that output untouched.
 
+The thread (`Thread_` in `include/ascend_forge/thread.h`) starts one worker and joins it.
+
+- `Thread_Init` marks the thread as not started. `Thread_Run` starts one worker with `SDL_CreateThread`. `Thread_Join` waits with `SDL_WaitThread` and reports the worker's return value.
+- One owner joins. The caller chooses how many workers to start. This primitive does not size a pool.
+- The worker does not call SDL window, event, or renderer functions. This primitive does not call them either. The SDL thread handle stays inside the primitive.
+- A failed create is logged and returns false. The thread stays as it was. Joining a thread that is not running is rejected and leaves the status untouched.
+- Web stays single-threaded. The primitive compiles there, and the rejection checks run there. Spawn checks run on desktop and Android. The iOS workflow stays manual.
+- Plugins submit jobs to the host. They do not call `SDL_CreateThread` for host or scene data.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.
@@ -229,10 +238,10 @@ The shape is a main thread plus a fork-join worker pool. A task graph (jobs with
 
 ### Main thread and workers
 
-- The main thread initializes SDL, pumps events, owns the window and renderer, activates plugins, and runs the frame.
-- `SDL_PollEvent` stays on the thread that initialized video. Rendering stays on that thread. Workers never call SDL window, event, or renderer APIs.
-- Create about one worker per core, minus the main thread. Do not oversubscribe.
-- Workers run host jobs to completion. Plugin code does not call `SDL_CreateThread` for host or scene data.
+- The main thread initializes SDL, pumps events, owns the window and renderer, activates plugins, and runs the frame. The first caller that opens a window, pumps events, or renders does that work on the thread that initialized video.
+- `SDL_PollEvent` stays on the thread that initialized video. Rendering stays on that thread. Workers, including a job started with `Thread_`, never call SDL window, event, or renderer APIs. Primitive tests do not open a window.
+- Create about one worker per core, minus the main thread. Do not oversubscribe. `Thread_` does not size that pool. The caller chooses how many workers to start.
+- Workers run host jobs to completion. A worker starts with `Thread_Run` and the owner waits with `Thread_Join`. Plugin code does not call `SDL_CreateThread` for host or scene data.
 
 ### Jobs and phases
 
@@ -379,6 +388,7 @@ When generating or modifying code:
 - Allocate from arenas. Treat allocation failure as fatal.
 - Prefer `Slice_` for a dynamic collection. Keep its elements in the caller's arena.
 - Publish a finished value with `Atomic_Publish`. Readers use `Atomic_Acquire`.
+- Start a worker with `Thread_Run` and wait with `Thread_Join`. That worker does not call SDL window, event, or renderer APIs.
 - Keep primitives in the shared C library, statically linked to SDL3 on desktop, Android, iOS, and web, and run their tests on each of those platforms.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
 - Separate data, logic, and presentation.
