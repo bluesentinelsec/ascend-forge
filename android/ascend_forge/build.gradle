@@ -2,6 +2,41 @@ plugins {
     id "com.android.library"
 }
 
+// SDL's Android JNI_OnLoad registers org.libsdl.app.* and aborts the process
+// if FindClass fails without clearing the exception. The classes ship in this
+// AAR. They are copied from the fetched SDL tree so they match that build.
+abstract class StageSdlJava extends DefaultTask {
+    @Input
+    abstract Property<String> getModuleBuildDirPath()
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDir()
+
+    @TaskAction
+    void stage() {
+        def buildDirFile = new File(moduleBuildDirPath.get())
+        File marker = null
+        buildDirFile.eachFile { file ->
+            if (file.name.startsWith("sdl-public-include-") && file.name.endsWith(".txt") && file.length() > 0) {
+                marker = file
+            }
+        }
+        if (marker == null) {
+            throw new GradleException("CMake did not record the SDL public include directory")
+        }
+        def javaRoot = new File(new File(marker.text.trim()).parentFile, "android-project/app/src/main/java")
+        if (!javaRoot.isDirectory()) {
+            throw new GradleException("SDL Android Java sources not found at ${javaRoot}")
+        }
+        def destination = outputDir.get().asFile
+        destination.deleteDir()
+        project.copy {
+            from javaRoot
+            into destination
+        }
+    }
+}
+
 def repositoryRoot = rootProject.projectDir.parentFile
 def moduleBuildDir = file(buildDir)
 def prefabHeaders = file("${moduleBuildDir}/generated/prefab-headers")
@@ -43,6 +78,11 @@ android {
         release {
             minifyEnabled false
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     buildFeatures {
@@ -97,6 +137,20 @@ tasks.register("preparePrefabHeaders") {
 
 tasks.named("preBuild").configure {
     dependsOn("preparePrefabHeaders")
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        def variantName = variant.name.substring(0, 1).toUpperCase() + variant.name.substring(1)
+        def stageProvider = tasks.register("stageSdlJava${variantName}", StageSdlJava) {
+            dependsOn("externalNativeBuild${variantName}")
+            moduleBuildDirPath.set(moduleBuildDir.absolutePath)
+            outputDir.set(layout.buildDirectory.dir("generated/sdl-java/${variant.name}"))
+        }
+        variant.sources.java.addGeneratedSourceDirectory(stageProvider) { task ->
+            task.outputDir
+        }
+    }
 }
 
 // CMake records the fetched SDL include tree while it configures. Copy those

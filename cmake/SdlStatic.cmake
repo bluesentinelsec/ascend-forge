@@ -15,8 +15,10 @@ set(SDL_INSTALL_TESTS OFF CACHE BOOL "" FORCE)
 # This flag only skips that check. X11 and Wayland are still built when
 # their headers are present. Android, iOS, and Emscripten do not use it.
 set(SDL_UNIX_CONSOLE_BUILD ON CACHE BOOL "" FORCE)
-# This host has its own Android activity. SDL's jar is the SDLActivity
-# glue. The native static library still builds the Android backends.
+# This host has its own Android activity. SDL's jar task needs a platform
+# android.jar that the NDK CMake package does not provide. Gradle compiles
+# the same org.libsdl.app sources into the AAR after this fetch. The native
+# static library still builds the Android backends.
 set(SDL_ANDROID_JAR OFF CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
