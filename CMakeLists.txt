@@ -21,8 +21,8 @@ endif()
 
 project(ascend-forge
   VERSION ${ASCEND_FORGE_VERSION}
-  DESCRIPTION "C++ project bootstrapped by cppboot"
-  LANGUAGES CXX
+  DESCRIPTION "Plain C host on static SDL3"
+  LANGUAGES C
 )
 
 # True when this project is the top-level CMake project (not add_subdirectory /
@@ -36,10 +36,6 @@ endif()
 # Exposed to version templates (configure_file @ONLY).
 set(PROJECT_NAMESPACE "ascend_forge")
 set(PROJECT_VERSION_STRING "${PROJECT_VERSION}")
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Top-level-only settings so embedding via add_subdirectory/FetchContent stays clean.
 if(ASCEND_FORGE_IS_TOP_LEVEL)
@@ -67,16 +63,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompilerWarnings.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Sanitizers.cmake")
 
-# Preferred third-party libraries (FetchContent). On for top-level apps; off when
-# embedded (and for the Android Prefab AAR and iOS XCFramework and web/Emscripten package, whose public
-# contract is the dependency-free core C++ API).
-set(ASCEND_FORGE_DEFAULT_WITH_OPTIONAL_DEPS ${ASCEND_FORGE_IS_TOP_LEVEL})
-if(ANDROID OR IOS OR EMSCRIPTEN)
-  set(ASCEND_FORGE_DEFAULT_WITH_OPTIONAL_DEPS OFF)
-endif()
-option(ASCEND_FORGE_WITH_CLI11 "CLI argument parsing via CLI11" ${ASCEND_FORGE_DEFAULT_WITH_OPTIONAL_DEPS})
-option(ASCEND_FORGE_WITH_JSON "JSON parsing via nlohmann/json" ${ASCEND_FORGE_DEFAULT_WITH_OPTIONAL_DEPS})
-option(ASCEND_FORGE_WITH_SPDLOG "Console/file logging via spdlog" ${ASCEND_FORGE_DEFAULT_WITH_OPTIONAL_DEPS})
+# Kept so existing configure lines that pass these flags still match an option.
+# The host does not fetch CLI11, nlohmann JSON, or spdlog.
+option(ASCEND_FORGE_WITH_CLI11 "Unused. The C entrypoint does not fetch CLI11" OFF)
+option(ASCEND_FORGE_WITH_JSON "Unused. JSON is the C Json_ primitive" OFF)
+option(ASCEND_FORGE_WITH_SPDLOG "Unused. Logging is SDL_Log" OFF)
 
 # When embedded, skip app/tests/benchmarks unless the consumer opts in. Platform
 # package consumers receive the C++ library as a packaged artifact; repository
@@ -84,15 +75,13 @@ option(ASCEND_FORGE_WITH_SPDLOG "Console/file logging via spdlog" ${ASCEND_FORGE
 # under tests/web keep BUILD_TESTS meaningful for Emscripten).
 set(ASCEND_FORGE_DEFAULT_BUILD_APP ${ASCEND_FORGE_IS_TOP_LEVEL})
 set(ASCEND_FORGE_DEFAULT_BUILD_TESTS ${ASCEND_FORGE_IS_TOP_LEVEL})
-set(ASCEND_FORGE_DEFAULT_BUILD_BENCHMARKS ${ASCEND_FORGE_IS_TOP_LEVEL})
+set(ASCEND_FORGE_DEFAULT_BUILD_BENCHMARKS OFF)
 if(ANDROID OR IOS)
   set(ASCEND_FORGE_DEFAULT_BUILD_APP OFF)
   set(ASCEND_FORGE_DEFAULT_BUILD_TESTS OFF)
-  set(ASCEND_FORGE_DEFAULT_BUILD_BENCHMARKS OFF)
 endif()
 if(EMSCRIPTEN)
   set(ASCEND_FORGE_DEFAULT_BUILD_APP OFF)
-  set(ASCEND_FORGE_DEFAULT_BUILD_BENCHMARKS OFF)
 endif()
 option(ASCEND_FORGE_BUILD_APP "Build the demo application executable" ${ASCEND_FORGE_DEFAULT_BUILD_APP})
 option(ASCEND_FORGE_BUILD_TESTS "Build unit tests" ${ASCEND_FORGE_DEFAULT_BUILD_TESTS})
@@ -161,17 +150,17 @@ if(ASCEND_FORGE_ENABLE_SANITIZERS)
   cppboot_enable_sanitizers()
 endif()
 
-# Generate the version API from cmake/version.{hpp,cpp}.in (values from VERSION).
+# Generate the version API from cmake/version.{h,c}.in (values from VERSION).
 set(ASCEND_FORGE_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(ASCEND_FORGE_GENERATED_INCLUDE_DIR "${ASCEND_FORGE_GENERATED_DIR}/include")
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.hpp.in"
-  "${ASCEND_FORGE_GENERATED_INCLUDE_DIR}/ascend_forge/version.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.h.in"
+  "${ASCEND_FORGE_GENERATED_INCLUDE_DIR}/ascend_forge/version.h"
   @ONLY
 )
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cpp.in"
-  "${ASCEND_FORGE_GENERATED_DIR}/version.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.c.in"
+  "${ASCEND_FORGE_GENERATED_DIR}/version.c"
   @ONLY
 )
 
@@ -195,6 +184,9 @@ set_target_properties(${PROJECT_NAME}_lib PROPERTIES
   EXPORT_NAME lib
   VERSION ${PROJECT_VERSION}
   SOVERSION ${PROJECT_VERSION_MAJOR}
+  C_STANDARD 17
+  C_STANDARD_REQUIRED ON
+  C_EXTENSIONS OFF
 )
 
 target_include_directories(${PROJECT_NAME}_lib
@@ -204,7 +196,7 @@ target_include_directories(${PROJECT_NAME}_lib
     $<INSTALL_INTERFACE:include>
 )
 
-cppboot_set_project_warnings(${PROJECT_NAME}_lib)
+ascend_forge_set_c_warnings(${PROJECT_NAME}_lib)
 
 # Preferred third-party deps are linked on the *app* (and optionally tests), not
 # the library. Static libraries propagate private deps into install(EXPORT);
@@ -248,7 +240,7 @@ if(ASCEND_FORGE_IS_TOP_LEVEL AND CMAKE_EXPORT_COMPILE_COMMANDS)
 endif()
 
 include(GNUInstallDirs)
-# Desktop install of the C++ core stays free of the primitives header: that
+# Desktop install of the C core stays free of the primitive headers: that
 # archive does not contain them. The web package merges static SDL into
 # libascend_forge.a below, so its install ships the primitive headers and the SDL headers.
 if(EMSCRIPTEN AND ASCEND_FORGE_BUILD_PRIMITIVES)
@@ -275,7 +267,7 @@ else()
     PATTERN "time.h" EXCLUDE
   )
 endif()
-# Generated version API header (from VERSION + cmake/version.hpp.in).
+# Generated version API header (from VERSION + cmake/version.h.in).
 install(DIRECTORY ${ASCEND_FORGE_GENERATED_INCLUDE_DIR}/
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"

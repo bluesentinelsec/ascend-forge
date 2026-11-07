@@ -15,23 +15,19 @@ endif()
 # Example for new code:
 #   add_subdirectory(parser)
 
-# Painfully obvious program entrypoint: src/main.cpp
+# Program entrypoint: src/main.c
 # Skipped when this project is consumed via add_subdirectory / FetchContent
 # unless ASCEND_FORGE_BUILD_APP=ON.
 if(ASCEND_FORGE_BUILD_APP)
-  add_executable(${PROJECT_NAME}_app main.cpp)
-  set_target_properties(${PROJECT_NAME}_app PROPERTIES OUTPUT_NAME ascend-forge)
+  add_executable(${PROJECT_NAME}_app main.c)
+  set_target_properties(${PROJECT_NAME}_app PROPERTIES
+    OUTPUT_NAME ascend-forge
+    C_STANDARD 17
+    C_STANDARD_REQUIRED ON
+    C_EXTENSIONS OFF
+  )
   target_link_libraries(${PROJECT_NAME}_app PRIVATE ${PROJECT_NAME}_lib)
-  if(ASCEND_FORGE_WITH_CLI11)
-    target_link_libraries(${PROJECT_NAME}_app PRIVATE CLI11::CLI11)
-  endif()
-  if(ASCEND_FORGE_WITH_JSON)
-    target_link_libraries(${PROJECT_NAME}_app PRIVATE nlohmann_json::nlohmann_json)
-  endif()
-  if(ASCEND_FORGE_WITH_SPDLOG)
-    target_link_libraries(${PROJECT_NAME}_app PRIVATE spdlog::spdlog)
-  endif()
-  cppboot_set_project_warnings(${PROJECT_NAME}_app)
+  ascend_forge_set_c_warnings(${PROJECT_NAME}_app)
 endif()
 
 # Android Prefab shared library (built by the android/ Gradle project).

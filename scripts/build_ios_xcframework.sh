@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build ascend-forge.xcframework: static device (arm64) and simulator
-# (arm64/x86_64) libraries plus public headers and the generated version.hpp.
+# (arm64/x86_64) libraries plus public headers and the generated version.h.
 set -euo pipefail
 
 repository_root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -102,8 +102,8 @@ cmake -E make_directory "${headers_root}/ascend_forge"
 cmake -E copy_directory "${repository_root}/include/ascend_forge" "${headers_root}/ascend_forge"
 cmake -E rm -f "${headers_root}/ascend_forge/.gitkeep"
 cmake -E copy_directory "${sdl_headers}" "${headers_root}/SDL3"
-cmake -E copy "${device_build}/generated/include/ascend_forge/version.hpp" \
-    "${headers_root}/ascend_forge/version.hpp"
+cmake -E copy "${device_build}/generated/include/ascend_forge/version.h" \
+    "${headers_root}/ascend_forge/version.h"
 
 xcodebuild -create-xcframework \
     -library "${combined_root}/libascend_forge-iphoneos.a" \

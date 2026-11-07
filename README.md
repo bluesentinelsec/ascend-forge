@@ -9,7 +9,7 @@ Default library surface is the **version** component driven by the root **`VERSI
 ## Prerequisites
 
 - CMake **3.20+** (3.28+ if this project was generated with C++20 modules)
-- A **C++20** compiler (GCC, Clang, or MSVC recent enough for C++20)
+- A **C17** compiler (GCC, Clang, or MSVC)
 - GNU Make (or another make that understands this Makefile)
 - **Ninja** is required when this project uses C++20 modules (`--with-modules`)
 - Optional tools: `clang-format`, `doxygen`, an LSP client with clangd
@@ -100,7 +100,7 @@ Action pins use current stable majors (`actions/checkout@v7`,
 
 ## Android package (Prefab AAR)
 
-The `android/` Gradle project (`cppboot --with-android-ci`) packages the C++
+The `android/` Gradle project (`cppboot --with-android-ci`) packages the C
 library as an Android [Prefab](https://google.github.io/prefab/) AAR and hosts
 the on-device test application.
 
@@ -118,7 +118,7 @@ Android consumers add the AAR with `buildFeatures { prefab true }` and link
 (see `tests/android/CMakeLists.txt` for a working example).
 
 Device tests build `android/test-app` against the AAR and run
-`tests/android/android_test.cpp` on an emulator or attached device:
+`tests/android/android_test.c` on an emulator or attached device:
 
 ```bash
 ./android/gradlew -p android :test-app:assembleRelease
@@ -140,9 +140,9 @@ Notes:
 
 ## iOS package (XCFramework)
 
-The iOS scripts (`cppboot --with-ios-ci`) package the C++ library as a static
+The iOS scripts (`cppboot --with-ios-ci`) package the C library as a static
 XCFramework with device (arm64) and simulator (arm64/x86_64) slices, the
-public headers, and the generated `version.hpp`.
+public headers, and the generated `version.h`.
 
 Build on macOS with Xcode command line tools installed:
 
@@ -177,8 +177,8 @@ Notes:
   from it.
 - On iOS the core library is always built **static** (even when the project
   was generated with `--shared`).
-- Add project-specific package checks to `tests/ios/test_main.mm`; the
-  host-side GoogleTest suite does not run on iOS.
+- Add project-specific package checks to `tests/ios/test_main.mm`. The
+  desktop CTest binaries do not run on iOS.
 
 
 ## Web package (Emscripten / WebAssembly)
@@ -200,7 +200,7 @@ emrun build/web-release/bin/ascend-forge.html   # serves + opens the demo
 
 Grow it into a game:
 
-- Put per-frame simulation in `Update()` and rendering in the draw call —
+- Put per-frame simulation in `frame` and rendering in the draw call —
   swap the canvas-2D `EM_JS` bridge for WebGL2 (`-sUSE_WEBGL2=1` is already
   linked) or SDL2 (`-sUSE_SDL=2`, see the commented block in
   `src/web/CMakeLists.txt`).
@@ -209,7 +209,7 @@ Grow it into a game:
   with normal file I/O.
 - Never block the main thread; the browser owns the loop.
 
-Browser tests live in `tests/web/` (GoogleTest compiled to wasm) and run in
+Browser tests live in `tests/web/` (self-hosted C compiled to wasm) and run in
 headless Chrome:
 
 ```bash
@@ -262,8 +262,8 @@ Disable with `cppboot --no-codespaces` when regenerating a project.
    (or reload the window). IntelliSense needs that compilation database.
 6. **Debug the app:** F5 → *Debug ascend-forge* (rebuilds Debug first).
 7. **Unit tests (per-test ▶):** open the **Testing** view (beaker icon).
-   After a Debug build, **C++ TestMate** discovers GoogleTest binaries under
-   `build/debug/bin/` and offers run/debug for suites and individual `TEST`s.
+   After a Debug build, CTest runs the self-hosted binaries under
+   `build/debug/bin/`.
 8. **Bulk tests:** Task *Test*, CMake Tools CTest, or `make test`.
 
 Presets live in `CMakePresets.json` (`debug` → `build/debug`, `release` → `build/release`).
@@ -279,7 +279,7 @@ make reconfigure-debug
 Then F5 again. Prefer always using Ninja (install it; both `make` and VS Code will use it).
 
 **IntelliSense note:** Disable Microsoft C/C++ IntelliSense (already set) and use
-**clangd** only. Do not enable both. `std::string` / CLI11 / project headers resolve
+**clangd** only. Do not enable both. Project headers resolve
 from `compile_commands.json` after the first successful configure+build.
 
 **Tests note:** TestMate needs built test executables — Build Debug first.
@@ -288,44 +288,21 @@ set `testMate.cpp.debug.configTemplate.type` to `cppvsdbg`.
 
 Windows: use the *Debug ascend-forge (Windows)* launch config (MSVC debugger).
 
-## Preferred third-party libraries
+## Dependencies
 
-These are **imported by default** via FetchContent (see `cmake/Dependencies.cmake`)
-and linked into the project library. Prefer them for the jobs below instead of
-adding alternate stacks without a strong reason.
-
-| Purpose | Library | CMake option (default **ON**) | CMake target |
-|---------|---------|-------------------------------|--------------|
-| CLI arguments | [CLI11](https://github.com/CLIUtils/CLI11) | `-DASCEND_FORGE_WITH_CLI11=OFF` | `CLI11::CLI11` |
-| JSON | [nlohmann/json](https://github.com/nlohmann/json) | `-DASCEND_FORGE_WITH_JSON=OFF` | `nlohmann_json::nlohmann_json` |
-| Console logging | [spdlog](https://github.com/gabime/spdlog) | `-DASCEND_FORGE_WITH_SPDLOG=OFF` | `spdlog::spdlog` |
-
-Example headers:
-
-```cpp
-#include <CLI/CLI.hpp>
-#include <nlohmann/json.hpp>
-#include <spdlog/spdlog.h>
-```
-
-Disable any of them at configure time if you do not need them:
-
-```bash
-cmake -S . -B build/debug \
-  -DASCEND_FORGE_WITH_CLI11=OFF \
-  -DASCEND_FORGE_WITH_JSON=OFF \
-  -DASCEND_FORGE_WITH_SPDLOG=OFF
-```
+Default builds do not fetch CLI11, nlohmann JSON, spdlog, or GoogleTest. The
+entrypoint is C and parses `-V` / `--version` itself. JSON is the `Json_`
+primitive. Logging is `SDL_Log`. Tests are self-hosted.
 
 ## Layout
 
 ```text
 ascend-forge/
   VERSION              # single source of truth for package version
-  src/main.cpp         # THE program entrypoint (always here)
+  src/main.c           # THE program entrypoint (always here)
   src/<component>/     # library implementation; each dir has CMakeLists.txt
-  include/             # public headers (classic layout only; version.hpp is generated)
-  tests/<component>/   # GoogleTest / GoogleMock
+  include/             # public headers (classic layout only; version.h is generated)
+  tests/<component>/   # self-hosted checks
   benchmarks/<component>/
   cmake/               # shared CMake modules + version.*.in templates
   CMakeLists.txt
@@ -354,7 +331,7 @@ Package version lives in the root **`VERSION`** file (one line, e.g. `0.1.0`).
 | Consumer | How it gets the version |
 |----------|-------------------------|
 | CMake `project(... VERSION ...)` | Reads `VERSION` at configure time |
-| `ascend_forge::Version()` / CLI `--version` | Generated from `cmake/version.*.in` |
+| `Version_String()` / CLI `--version` | Generated from `cmake/version.h.in` and `cmake/version.c.in` |
 | GitHub Release workflow | Requires tag / dispatch input to match `VERSION` |
 | Doxygen `PROJECT_NUMBER` | Injected from `VERSION` by `make doc` / `build.bat doc` |
 
@@ -396,11 +373,8 @@ Optional cache variables (prefix `ASCEND_FORGE_`):
 | Option | Default (top-level / embedded) | Meaning |
 |--------|----------------------------------|---------|
 | `ASCEND_FORGE_BUILD_APP` | ON / OFF | Demo executable |
-| `ASCEND_FORGE_BUILD_TESTS` | ON / OFF | GoogleTest suite |
-| `ASCEND_FORGE_BUILD_BENCHMARKS` | ON / OFF | Google Benchmark |
-| `ASCEND_FORGE_WITH_CLI11` | ON / OFF | CLI11 |
-| `ASCEND_FORGE_WITH_JSON` | ON / OFF | nlohmann/json |
-| `ASCEND_FORGE_WITH_SPDLOG` | ON / OFF | spdlog |
+| `ASCEND_FORGE_BUILD_TESTS` | ON / OFF | Self-hosted checks |
+| `ASCEND_FORGE_BUILD_BENCHMARKS` | OFF | No C++ benchmark is fetched |
 
 ### `find_package` (after install)
 
@@ -448,7 +422,7 @@ WSL / MSYS2 can keep using `make` if you prefer.
 
 ## Run the app
 
-The program entrypoint is always **`src/main.cpp`**.
+The program entrypoint is always **`src/main.c`**.
 `make` links **`./ascend-forge`** at the project root to `build/debug/bin/ascend-forge`.
 
 After `make debug`:
@@ -473,7 +447,7 @@ Runs CTest against the Debug build (includes version API tests).
 make bench
 ```
 
-Builds **Release** and runs Google Benchmark binaries (short min time for smoke runs).
+Builds **Release**. The host does not fetch Google Benchmark, so this finds no benchmark binary and exits successfully.
 
 ## Format
 
@@ -483,8 +457,7 @@ make fmt
 
 Runs **clang-format** with the checked-in `.clang-format` (**Microsoft** style).
 
-**Formatting** uses Microsoft clang-format; **code logic/naming/design** follow
-the **Google C++ Style Guide** (see AGENTS.md).
+**Formatting** uses Microsoft clang-format. Naming and design follow AGENTS.md.
 
 ## Documentation
 
@@ -523,14 +496,14 @@ own `CMakeLists.txt` and **lists files explicitly** (no `file(GLOB)`).
 
 1. **Public header** (classic layout):
 
-   `include/ascend_forge/parser.hpp`
+   `include/ascend_forge/parser.h`
 
 2. **Implementation**:
 
    ```text
    src/parser/
      CMakeLists.txt
-     parser.cpp
+     parser.c
    ```
 
 3. **`src/parser/CMakeLists.txt`**:
@@ -538,7 +511,7 @@ own `CMakeLists.txt` and **lists files explicitly** (no `file(GLOB)`).
    ```cmake
    target_sources(${PROJECT_NAME}_lib
      PRIVATE
-       parser.cpp
+       parser.c
    )
    ```
 
@@ -554,16 +527,16 @@ own `CMakeLists.txt` and **lists files explicitly** (no `file(GLOB)`).
    ```text
    tests/parser/
      CMakeLists.txt
-     parser_test.cpp
+     parser_test.c
    ```
 
    And `add_subdirectory(parser)` in `tests/CMakeLists.txt`.
 
 ### Rules of thumb
 
-- The only program entrypoint is **`src/main.cpp`**. Keep it thin; put logic in library components.
-- Library code goes under `src/<component>/`, never into `src/main.cpp` beyond startup wiring.
-- List every `.cpp` / `.cppm` in the component `CMakeLists.txt`.
+- The only program entrypoint is **`src/main.c`**. Keep it thin; put logic in library components.
+- Library code goes under `src/<component>/`, never into `src/main.c` beyond startup wiring.
+- List every `.c` file in the component `CMakeLists.txt`.
 - Mirror component names under `tests/` and `benchmarks/`.
 - Do not rely on directory globs for sources — explicit lists keep reviews and CI unambiguous.
 

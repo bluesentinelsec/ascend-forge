@@ -7,9 +7,9 @@ function(cppboot_enable_sanitizers)
       "Sanitizers via cppboot_enable_sanitizers() require GCC or Clang "
       "(not MSVC). Use Linux CI or a Clang toolset.")
   endif()
-  if(NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+  if(NOT CMAKE_C_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
     message(FATAL_ERROR
-      "Sanitizers require GNU or Clang (got ${CMAKE_CXX_COMPILER_ID}).")
+      "Sanitizers require GNU or Clang (got ${CMAKE_C_COMPILER_ID}).")
   endif()
 
   message(STATUS "Enabling AddressSanitizer + UndefinedBehaviorSanitizer on project targets")

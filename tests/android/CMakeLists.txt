@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(ascend_forge_android_test LANGUAGES C CXX)
+project(ascend_forge_android_test LANGUAGES C)
 
 find_package(ascend_forge REQUIRED CONFIG)
 
 add_library(ascend_forge_android_test SHARED
-  android_test.cpp
+  android_test.c
   "${CMAKE_CURRENT_SOURCE_DIR}/../arena/arena_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../utf8/utf8_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../result/result_test.c"
@@ -15,7 +15,7 @@ add_library(ascend_forge_android_test SHARED
   "${CMAKE_CURRENT_SOURCE_DIR}/../thread/thread_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../time/time_test.c"
 )
-target_compile_features(ascend_forge_android_test PRIVATE cxx_std_20 c_std_17)
+target_compile_features(ascend_forge_android_test PRIVATE c_std_17)
 target_compile_definitions(ascend_forge_android_test PRIVATE
   ASCEND_FORGE_ARENA_TESTS_NO_MAIN
   ASCEND_FORGE_UTF8_TESTS_NO_MAIN

@@ -1,9 +1,13 @@
 # Android Prefab library. Gradle publishes this target as the `ascend_forge`
-# module in the AAR. Whole-archive linking keeps every public C++ API symbol
+# module in the AAR. Whole-archive linking keeps every public C symbol
 # while folding the static core library into one shared object.
-add_library(ascend_forge SHARED android_library.cpp)
+# SDL ships src/hidapi/android/hid.cpp. This anchor stays C, and the shared
+# library still links with the C++ driver so libc++ resolves operator new.
+enable_language(CXX)
+add_library(ascend_forge SHARED android_library.c)
+set_target_properties(ascend_forge PROPERTIES LINKER_LANGUAGE CXX)
 
-target_compile_features(ascend_forge PUBLIC cxx_std_20)
+target_compile_features(ascend_forge PUBLIC c_std_17)
 target_include_directories(ascend_forge
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
@@ -31,4 +35,4 @@ set_target_properties(ascend_forge PROPERTIES
   OUTPUT_NAME ascend_forge
 )
 
-cppboot_set_project_warnings(ascend_forge)
+ascend_forge_set_c_warnings(ascend_forge)
