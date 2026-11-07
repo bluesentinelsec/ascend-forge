@@ -9,6 +9,8 @@
 #include <string>
 #include <string_view>
 
+#include "arena_tests.h"
+
 namespace
 {
 
@@ -48,6 +50,7 @@ int RunTests()
     run.Check(version.substr(0, major_prefix.size()) == major_prefix,
               "Version() matches the compiled major version");
     run.Check(ascend_forge::kVersionMajor >= 0, "major version is non-negative");
+    run.Check(ArenaTests_Run() == 0, "arena checks passed");
     return run.failures();
 }
 

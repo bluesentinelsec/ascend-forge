@@ -56,39 +56,52 @@ configure_and_build() {
         -DASCEND_FORGE_BUILD_APP=OFF \
         -DASCEND_FORGE_BUILD_TESTS=OFF \
         -DASCEND_FORGE_BUILD_BENCHMARKS=OFF \
+        -DASCEND_FORGE_BUILD_PRIMITIVES=ON \
         -DASCEND_FORGE_WITH_CLI11=OFF \
         -DASCEND_FORGE_WITH_JSON=OFF \
         -DASCEND_FORGE_WITH_SPDLOG=OFF
 
     cmake --build "${build_dir}" --config "${configuration}" \
-        --target "ascend-forge_lib" --parallel
+        --target "ascend-forge_lib" "ascend-forge_primitives" --parallel
 }
 
-combine_archives() {
+merge_archives() {
     local build_dir="$1"
     local destination="$2"
-    local candidate
+    local core=""
+    local primitives=""
+    local sdl=""
 
-    candidate="$(find "${build_dir}" -type f -name "libascend_forge.a" -path "*/${configuration}*" -print -quit)"
-    if [[ -z "${candidate}" ]]; then
-        echo "Missing libascend_forge.a in ${build_dir}" >&2
+    core="$(find "${build_dir}" -type f -name "libascend_forge.a" -path "*/${configuration}*" -print -quit)"
+    primitives="$(find "${build_dir}" -type f -name "libascend_forge_primitives.a" -path "*/${configuration}*" -print -quit)"
+    sdl="$(find "${build_dir}" -type f -name "libSDL3.a" -path "*/${configuration}*" -print -quit)"
+    if [[ -z "${core}" || -z "${primitives}" || -z "${sdl}" ]]; then
+        echo "Missing static archives in ${build_dir}" >&2
+        echo "  core: ${core:-missing}" >&2
+        echo "  primitives: ${primitives:-missing}" >&2
+        echo "  SDL3: ${sdl:-missing}" >&2
         exit 1
     fi
 
-    libtool -static -o "${destination}" "${candidate}"
+    libtool -static -o "${destination}" "${core}" "${primitives}" "${sdl}"
 }
 
 configure_and_build iphoneos arm64 "${device_build}"
 configure_and_build iphonesimulator 'arm64;x86_64' "${simulator_build}"
 
-combine_archives "${device_build}" "${combined_root}/libascend_forge-iphoneos.a"
-combine_archives "${simulator_build}" "${combined_root}/libascend_forge-iphonesimulator.a"
+merge_archives "${device_build}" "${combined_root}/libascend_forge-iphoneos.a"
+merge_archives "${simulator_build}" "${combined_root}/libascend_forge-iphonesimulator.a"
+
+sdl_headers="$(find "${device_build}" -type d -path "*/sdl-src/include/SDL3" -print -quit)"
+if [[ -z "${sdl_headers}" ]]; then
+    echo "Missing fetched SDL3 public headers in ${device_build}" >&2
+    exit 1
+fi
 
 cmake -E make_directory "${headers_root}/ascend_forge"
 cmake -E copy_directory "${repository_root}/include/ascend_forge" "${headers_root}/ascend_forge"
 cmake -E rm -f "${headers_root}/ascend_forge/.gitkeep"
-# The arena header needs static SDL3, which this package does not link yet.
-cmake -E rm -f "${headers_root}/ascend_forge/arena.h"
+cmake -E copy_directory "${sdl_headers}" "${headers_root}/SDL3"
 cmake -E copy "${device_build}/generated/include/ascend_forge/version.hpp" \
     "${headers_root}/ascend_forge/version.hpp"
 

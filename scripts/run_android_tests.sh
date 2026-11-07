@@ -18,18 +18,18 @@ adb shell am start -W -n "${activity}" >/dev/null
 
 deadline=$((SECONDS + timeout_seconds))
 while (( SECONDS < deadline )); do
-  logs="$(adb logcat -d -s ascend-forge-android-test:I '*:S')"
+  logs="$(adb logcat -d)"
   if grep -q "ASCEND_FORGE_ANDROID_TESTS: PASS" <<<"${logs}"; then
-    printf '%s\n' "${logs}"
+    printf '%s\n' "${logs}" | grep -E "PASS:|FAIL:|ASCEND_FORGE_ANDROID_TESTS:"
     exit 0
   fi
   if grep -q "ASCEND_FORGE_ANDROID_TESTS: FAIL" <<<"${logs}"; then
-    printf '%s\n' "${logs}" >&2
+    printf '%s\n' "${logs}" | grep -E "PASS:|FAIL:|ASCEND_FORGE_ANDROID_TESTS:" >&2
     exit 1
   fi
   sleep 1
 done
 
-adb logcat -d -s ascend-forge-android-test:I '*:S' >&2
+adb logcat -d | grep -E "PASS:|FAIL:|ASCEND_FORGE_ANDROID_TESTS:" >&2 || true
 echo "Timed out after ${timeout_seconds}s waiting for Android tests" >&2
 exit 1

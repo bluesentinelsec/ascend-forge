@@ -100,12 +100,9 @@ option(ASCEND_FORGE_BUILD_BENCHMARKS "Build benchmarks" ${ASCEND_FORGE_DEFAULT_B
 # HTML5 canvas demo page for top-level Emscripten builds (see src/web/).
 option(ASCEND_FORGE_BUILD_WEB_DEMO "Build the web canvas demo (Emscripten only)" ${ASCEND_FORGE_IS_TOP_LEVEL})
 
-# First-party C primitives. Desktop links static SDL3. Android, iOS, and
-# Emscripten stay on the dependency-free core until that static link lands.
+# First-party C primitives. Every top-level platform links static SDL3,
+# including Android, iOS, and Emscripten.
 set(ASCEND_FORGE_DEFAULT_BUILD_PRIMITIVES ${ASCEND_FORGE_IS_TOP_LEVEL})
-if(ANDROID OR IOS OR EMSCRIPTEN)
-  set(ASCEND_FORGE_DEFAULT_BUILD_PRIMITIVES OFF)
-endif()
 option(ASCEND_FORGE_BUILD_PRIMITIVES
   "Build the C primitive library (arena and later primitives)"
   ${ASCEND_FORGE_DEFAULT_BUILD_PRIMITIVES}
@@ -153,6 +150,9 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CWarnings.cmake")
 
 if(ASCEND_FORGE_BUILD_PRIMITIVES)
   enable_language(C)
+  if(APPLE)
+    enable_language(OBJC)
+  endif()
   include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/SdlStatic.cmake")
 endif()
 
@@ -248,11 +248,25 @@ if(ASCEND_FORGE_IS_TOP_LEVEL AND CMAKE_EXPORT_COMPILE_COMMANDS)
 endif()
 
 include(GNUInstallDirs)
-install(DIRECTORY include/
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
-  PATTERN "arena.h" EXCLUDE
-)
+# Desktop install of the C++ core stays free of the primitives header: that
+# archive does not contain them. The web package merges static SDL into
+# libascend_forge.a below, so its install ships arena.h and the SDL headers.
+if(EMSCRIPTEN AND ASCEND_FORGE_BUILD_PRIMITIVES)
+  install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+  )
+  install(DIRECTORY "${ASCEND_FORGE_SDL_SOURCE_DIR}/include/SDL3"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.h"
+  )
+else()
+  install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+    PATTERN "arena.h" EXCLUDE
+  )
+endif()
 # Generated version API header (from VERSION + cmake/version.hpp.in).
 install(DIRECTORY ${ASCEND_FORGE_GENERATED_INCLUDE_DIR}/
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -289,4 +303,21 @@ install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/ascend-forgeConfigVersion.cmake"
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
+
+# The exported CMake target stays the core archive so it does not name the
+# unexported SDL3-static target. On the web, replace the installed file with
+# one archive that contains the core, the primitives, and static SDL.
+if(EMSCRIPTEN AND ASCEND_FORGE_BUILD_PRIMITIVES)
+  install(CODE "
+    execute_process(
+      COMMAND \"${CMAKE_COMMAND}\" -E env bash
+        \"${CMAKE_SOURCE_DIR}/scripts/merge_static_archives.sh\"
+        \"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/libascend_forge.a\"
+        \"${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/libascend_forge.a\"
+        \"${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/libascend_forge_primitives.a\"
+        \"${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/libSDL3.a\"
+      COMMAND_ERROR_IS_FATAL ANY
+    )
+  ")
+endif()
 

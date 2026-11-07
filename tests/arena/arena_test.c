@@ -5,6 +5,8 @@
 
 #include "ascend_forge/arena.h"
 
+#include "arena_tests.h"
+
 #include <stdio.h>
 
 static int g_failed = 0;
@@ -14,7 +16,7 @@ static void expect_true(bool condition, const char *name)
     if (condition) {
         return;
     }
-    fprintf(stderr, "FAIL %s\n", name);
+    fprintf(stderr, "FAIL: %s\n", name);
     g_failed += 1;
 }
 
@@ -156,8 +158,9 @@ static void test_null_arguments(void)
     expect_true(!Arena_Alloc(NULL, 1u, 1u, NULL), "Arena_RejectsNullAllocArguments");
 }
 
-int main(void)
+int ArenaTests_Run(void)
 {
+    g_failed = 0;
     test_rejects_zero_capacity();
     test_create_reports_capacity();
     test_allocates_and_preserves_bytes();
@@ -168,11 +171,19 @@ int main(void)
     test_reset_reuses_storage();
     test_rewind_restores_mark();
     test_null_arguments();
+    return g_failed;
+}
 
-    if (g_failed != 0) {
-        fprintf(stderr, "%d arena checks failed\n", g_failed);
+#ifndef ASCEND_FORGE_ARENA_TESTS_NO_MAIN
+int main(void)
+{
+    const int failed = ArenaTests_Run();
+
+    if (failed != 0) {
+        fprintf(stderr, "%d arena checks failed\n", failed);
         return 1;
     }
     printf("arena checks passed\n");
     return 0;
 }
+#endif

@@ -3,7 +3,8 @@ plugins {
 }
 
 def repositoryRoot = rootProject.projectDir.parentFile
-def prefabHeaders = file("${buildDir}/generated/prefab-headers")
+def moduleBuildDir = file(buildDir)
+def prefabHeaders = file("${moduleBuildDir}/generated/prefab-headers")
 def packageVersion = new File(repositoryRoot, "VERSION").readLines()[0]
         .replaceFirst(/^[vV]/, "")
         .replaceFirst(/[ \t]*#.*$/, "")
@@ -29,6 +30,7 @@ android {
                           "-DASCEND_FORGE_BUILD_APP=OFF",
                           "-DASCEND_FORGE_BUILD_TESTS=OFF",
                           "-DASCEND_FORGE_BUILD_BENCHMARKS=OFF",
+                          "-DASCEND_FORGE_BUILD_PRIMITIVES=ON",
                           "-DASCEND_FORGE_WITH_CLI11=OFF",
                           "-DASCEND_FORGE_WITH_JSON=OFF",
                           "-DASCEND_FORGE_WITH_SPDLOG=OFF"
@@ -75,8 +77,6 @@ tasks.register("preparePrefabHeaders") {
             from new File(repositoryRoot, "include")
             into prefabHeaders
             include "**/*.h", "**/*.hpp"
-            // The arena header needs static SDL3, which this package does not link yet.
-            exclude "**/arena.h"
         }
 
         def components = packageVersion.tokenize(".-")
@@ -97,4 +97,39 @@ tasks.register("preparePrefabHeaders") {
 
 tasks.named("preBuild").configure {
     dependsOn("preparePrefabHeaders")
+}
+
+// CMake records the fetched SDL include tree while it configures. Copy those
+// public headers into the prefab snapshot after that configure, so arena.h
+// can include SDL3 from the packaged AAR.
+afterEvaluate {
+    android.libraryVariants.all { variant ->
+        def variantName = variant.name.substring(0, 1).toUpperCase() + variant.name.substring(1)
+        def stageProvider = tasks.register("stageSdlPrefabHeaders${variantName}") {
+            dependsOn("preparePrefabHeaders", "externalNativeBuild${variantName}")
+            doLast {
+                def markers = fileTree(dir: moduleBuildDir, include: "sdl-public-include-*.txt").files
+                def marker = markers.find { it.isFile() && it.length() > 0 }
+                if (marker == null) {
+                    throw new GradleException(
+                            "CMake did not record the SDL public include directory")
+                }
+                def includeRoot = marker.text.trim()
+                def sdlHeaders = new File(includeRoot, "SDL3")
+                if (!sdlHeaders.isDirectory()) {
+                    throw new GradleException("SDL public headers not found at ${sdlHeaders}")
+                }
+                copy {
+                    from sdlHeaders
+                    into new File(prefabHeaders, "SDL3")
+                    include "**/*.h"
+                }
+            }
+        }
+        tasks.configureEach { task ->
+            if (task.name == "prefab${variantName}Package") {
+                task.dependsOn(stageProvider)
+            }
+        }
+    }
 }

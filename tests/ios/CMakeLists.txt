@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(ascend_forge_ios_package_test LANGUAGES CXX OBJCXX)
+project(ascend_forge_ios_package_test LANGUAGES C CXX OBJCXX)
 
 if(NOT IOS)
   message(FATAL_ERROR "The ascend-forge iOS package test must be configured with CMAKE_SYSTEM_NAME=iOS")
@@ -16,16 +16,56 @@ if(ASCEND_FORGE_EXPECTED_VERSION STREQUAL "")
   message(FATAL_ERROR "Set ASCEND_FORGE_EXPECTED_VERSION to the root VERSION value")
 endif()
 
-add_executable(ascend_forge_ios_test MACOSX_BUNDLE test_main.mm)
-target_compile_features(ascend_forge_ios_test PRIVATE cxx_std_20)
-target_compile_options(ascend_forge_ios_test PRIVATE -fobjc-arc)
+if(CMAKE_OSX_SYSROOT MATCHES "[Ss]imulator")
+  set(ASCEND_FORGE_XCFRAMEWORK_SLICE "ios-arm64_x86_64-simulator")
+else()
+  set(ASCEND_FORGE_XCFRAMEWORK_SLICE "ios-arm64")
+endif()
+set(ASCEND_FORGE_PACKAGE_HEADERS
+  "${ASCEND_FORGE_XCFRAMEWORK}/${ASCEND_FORGE_XCFRAMEWORK_SLICE}/Headers"
+)
+
+add_executable(ascend_forge_ios_test MACOSX_BUNDLE
+  test_main.mm
+  "${CMAKE_CURRENT_SOURCE_DIR}/../arena/arena_test.c"
+)
+target_compile_features(ascend_forge_ios_test PRIVATE cxx_std_20 c_std_17)
+set_source_files_properties(test_main.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/../arena/arena_test.c"
+  PROPERTIES COMPILE_OPTIONS
+    "-Wall;-Wextra;-Wpedantic;-Werror;-Wconversion;-Wshadow;-Wcast-align;-Wunused"
+)
 target_compile_definitions(ascend_forge_ios_test PRIVATE
   ASCEND_FORGE_EXPECTED_VERSION="${ASCEND_FORGE_EXPECTED_VERSION}"
+  ASCEND_FORGE_ARENA_TESTS_NO_MAIN
 )
+target_include_directories(ascend_forge_ios_test PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../arena"
+)
+target_include_directories(ascend_forge_ios_test SYSTEM PRIVATE
+  "${ASCEND_FORGE_PACKAGE_HEADERS}"
+)
+# These are the system frameworks the pinned SDL 3.4.20 iOS static library
+# references. -ObjC keeps SDL's Objective-C classes in the link.
 target_link_libraries(ascend_forge_ios_test PRIVATE
   "${ASCEND_FORGE_XCFRAMEWORK}"
+  "-ObjC"
   "-framework Foundation"
   "-framework UIKit"
+  "-framework CoreVideo"
+  "-framework CoreMedia"
+  "-framework CoreAudio"
+  "-framework AudioToolbox"
+  "-framework AVFoundation"
+  "-framework CoreMotion"
+  "-framework GameController"
+  "-framework CoreHaptics"
+  "-framework CoreGraphics"
+  "-framework QuartzCore"
+  "-framework OpenGLES"
+  "-framework Metal"
+  "-framework CoreBluetooth"
 )
 
 set_target_properties(ascend_forge_ios_test PROPERTIES

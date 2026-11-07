@@ -17,7 +17,7 @@ jobs:
   web:
     name: web (Emscripten/browser)
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
 
     defaults:
       run:
@@ -43,6 +43,7 @@ jobs:
           emcmake cmake -S . -B build/web-debug -G Ninja
           -DCMAKE_BUILD_TYPE=Debug
           -DASCEND_FORGE_BUILD_TESTS=ON
+          -DASCEND_FORGE_BUILD_PRIMITIVES=ON
 
       - name: Build Debug
         run: cmake --build build/web-debug --parallel
@@ -54,11 +55,19 @@ jobs:
           --kill_exit --timeout 120
           build/web-debug/bin/ascend_forge_web_test.html
 
+      - name: Test Debug arena checks in headless Chrome
+        run: >
+          emrun --browser=google-chrome
+          --browser_args="--headless=new --no-sandbox --disable-gpu"
+          --kill_exit --timeout 120
+          build/web-debug/bin/ascend_forge_arena_test.html
+
       - name: Configure Release
         run: >
           emcmake cmake -S . -B build/web-release -G Ninja
           -DCMAKE_BUILD_TYPE=Release
           -DASCEND_FORGE_BUILD_TESTS=ON
+          -DASCEND_FORGE_BUILD_PRIMITIVES=ON
 
       - name: Build Release
         run: cmake --build build/web-release --parallel
@@ -69,6 +78,13 @@ jobs:
           --browser_args="--headless=new --no-sandbox --disable-gpu"
           --kill_exit --timeout 120
           build/web-release/bin/ascend_forge_web_test.html
+
+      - name: Test Release arena checks in headless Chrome
+        run: >
+          emrun --browser=google-chrome
+          --browser_args="--headless=new --no-sandbox --disable-gpu"
+          --kill_exit --timeout 120
+          build/web-release/bin/ascend_forge_arena_test.html
 
       - name: Verify canvas demo build
         run: |

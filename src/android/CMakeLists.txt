@@ -11,10 +11,21 @@ target_include_directories(ascend_forge
 )
 
 add_dependencies(ascend_forge ${PROJECT_NAME}_lib)
-target_link_options(ascend_forge
-  PRIVATE
-    "LINKER:--whole-archive,$<TARGET_FILE:${PROJECT_NAME}_lib>,--no-whole-archive"
-)
+if(ASCEND_FORGE_BUILD_PRIMITIVES)
+  # Whole-archive keeps Arena_* in the .so. Static SDL resolves those
+  # references, including its Android JNI_OnLoad.
+  add_dependencies(ascend_forge ${PROJECT_NAME}_primitives)
+  target_link_options(ascend_forge
+    PRIVATE
+      "LINKER:--whole-archive,$<TARGET_FILE:${PROJECT_NAME}_lib>,$<TARGET_FILE:${PROJECT_NAME}_primitives>,--no-whole-archive"
+  )
+  target_link_libraries(ascend_forge PRIVATE SDL3::SDL3-static)
+else()
+  target_link_options(ascend_forge
+    PRIVATE
+      "LINKER:--whole-archive,$<TARGET_FILE:${PROJECT_NAME}_lib>,--no-whole-archive"
+  )
+endif()
 
 set_target_properties(ascend_forge PROPERTIES
   OUTPUT_NAME ascend_forge
