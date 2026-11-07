@@ -190,11 +190,11 @@ static void test_utf8_next_reads_one_byte(void)
 
 static void test_utf8_next_reports_non_utf8(void)
 {
-    const char raw[1] = {(char)0xFF};
+    const Uint8 raw[1] = {0xFFu};
     Utf8 text;
     Uint32 codepoint = 0u;
 
-    expect_true(borrow_text(raw, 1u, &text), "Utf8_NextReportsNonUtf8_Borrow");
+    expect_true(borrow_text((const char *)raw, 1u, &text), "Utf8_NextReportsNonUtf8_Borrow");
     expect_true(Utf8_Next(&text, &codepoint), "Utf8_NextReportsNonUtf8");
     expect_true(codepoint == SDL_INVALID_UNICODE_CODEPOINT, "Utf8_NextReportsNonUtf8_CodePoint");
     expect_true(text.size == 0u, "Utf8_NextReportsNonUtf8_ConsumesOneByte");
@@ -212,20 +212,20 @@ static void test_utf8_is_valid_accepts_ascii(void)
 
 static void test_utf8_is_valid_rejects_non_utf8(void)
 {
-    const char raw[1] = {(char)0xFF};
+    const Uint8 raw[1] = {0xFFu};
     Utf8 text;
 
-    expect_true(borrow_text(raw, 1u, &text), "Utf8_IsValidRejectsNonUtf8_Borrow");
+    expect_true(borrow_text((const char *)raw, 1u, &text), "Utf8_IsValidRejectsNonUtf8_Borrow");
     expect_true(!Utf8_IsValid(text), "Utf8_IsValidRejectsNonUtf8");
 }
 
 static void test_utf8_accepts_replacement_character(void)
 {
-    const char raw[3] = {(char)0xEF, (char)0xBF, (char)0xBD};
+    const Uint8 raw[3] = {0xEFu, 0xBFu, 0xBDu};
     Utf8 text;
     Uint32 codepoint = 0u;
 
-    expect_true(borrow_text(raw, 3u, &text), "Utf8_AcceptsReplacementCharacter_Borrow");
+    expect_true(borrow_text((const char *)raw, 3u, &text), "Utf8_AcceptsReplacementCharacter_Borrow");
     expect_true(Utf8_IsValid(text), "Utf8_AcceptsReplacementCharacter");
     expect_true(Utf8_Next(&text, &codepoint), "Utf8_AcceptsReplacementCharacter_Next");
     expect_true(codepoint == SDL_INVALID_UNICODE_CODEPOINT, "Utf8_AcceptsReplacementCharacter_CodePoint");
