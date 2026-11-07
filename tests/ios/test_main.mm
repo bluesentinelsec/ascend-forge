@@ -14,6 +14,7 @@
 #include "io_tests.h"
 #include "json_tests.h"
 #include "slice_tests.h"
+#include "atomic_tests.h"
 
 #include <string>
 #include <string_view>
@@ -67,6 +68,7 @@ int RunTests()
     run.Check(IoTests_Run() == 0, "io checks passed");
     run.Check(JsonTests_Run() == 0, "json checks passed");
     run.Check(SliceTests_Run() == 0, "slice checks passed");
+    run.Check(AtomicTests_Run() == 0, "atomic checks passed");
     return run.failures();
 }
 

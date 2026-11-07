@@ -32,6 +32,7 @@ for identifier in ios-arm64 ios-arm64_x86_64-simulator; do
     test -f "${header_root}/ascend_forge/io.h"
     test -f "${header_root}/ascend_forge/json.h"
     test -f "${header_root}/ascend_forge/slice.h"
+    test -f "${header_root}/ascend_forge/atomic.h"
     test -f "${header_root}/SDL3/SDL.h"
 done
 
@@ -56,6 +57,7 @@ grep -qE 'T _Result_Fail$' "${symbols_file}"
 grep -qE 'T _Io_ReadFile$' "${symbols_file}"
 grep -qE 'T _Json_Parse$' "${symbols_file}"
 grep -qE 'T _Slice_Append$' "${symbols_file}"
+grep -qE 'T _AtomicU32_Load$' "${symbols_file}"
 grep -qE 'T _SDL_malloc$' "${symbols_file}"
 # yyjson stays in the archive for the linker and is not a public symbol.
 # `nm -gU` still lists hidden symbols, so check the visibility flag.
