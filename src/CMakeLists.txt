@@ -26,7 +26,15 @@ if(ASCEND_FORGE_BUILD_APP)
     C_STANDARD_REQUIRED ON
     C_EXTENSIONS OFF
   )
-  target_link_libraries(${PROJECT_NAME}_app PRIVATE ${PROJECT_NAME}_lib)
+  # Whole-archive keeps every SDL object in the host. A normal static link
+  # drops objects main.c does not reference, and a plugin would not find them.
+  # The core archive stays unlinked from SDL so install(EXPORT) does not
+  # require the unexported SDL3-static target.
+  target_link_libraries(${PROJECT_NAME}_app
+    PRIVATE
+      ${PROJECT_NAME}_lib
+      $<LINK_LIBRARY:WHOLE_ARCHIVE,SDL3::SDL3-static>
+  )
   ascend_forge_set_c_warnings(${PROJECT_NAME}_app)
 endif()
 

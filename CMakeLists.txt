@@ -137,7 +137,7 @@ option(ASCEND_FORGE_ENABLE_SANITIZERS "Enable Address+UBSan on project targets" 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Dependencies.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CWarnings.cmake")
 
-if(ASCEND_FORGE_BUILD_PRIMITIVES)
+if(ASCEND_FORGE_BUILD_PRIMITIVES OR ASCEND_FORGE_BUILD_APP)
   enable_language(C)
   if(APPLE)
     enable_language(OBJC)
