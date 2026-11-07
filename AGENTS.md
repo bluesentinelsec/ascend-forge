@@ -162,6 +162,15 @@ The result (`Result_` in `include/ascend_forge/result.h`) is the one shape for a
 - A failure leaves the callee's output untouched when that callee documents the contract.
 - Jobs may read a result. The borrowed strings stay valid for as long as the memory they point at.
 
+File and path calls (`Io_` in `include/ascend_forge/io.h`) sit on SDL.
+
+- Read a file into the caller's arena. Write a span to a path. Join paths as arena text.
+- Use `SDL_IOStream`, `SDL_GetPathInfo`, `SDL_GetBasePath`, and `SDL_GetPrefPath`.
+- One job owns a path while it writes that path. Two jobs do not write the same path.
+- A missing file or a short transfer returns a `Result_` and does not exit. The output span stays as it was.
+- A short read still consumes arena space for the attempt. A short write may leave a partial file.
+- Out of memory stays fatal inside the arena.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.

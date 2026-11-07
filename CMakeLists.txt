@@ -267,6 +267,7 @@ else()
     PATTERN "arena.h" EXCLUDE
     PATTERN "utf8.h" EXCLUDE
     PATTERN "result.h" EXCLUDE
+    PATTERN "io.h" EXCLUDE
   )
 endif()
 # Generated version API header (from VERSION + cmake/version.hpp.in).

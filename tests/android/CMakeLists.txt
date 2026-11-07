@@ -8,18 +8,21 @@ add_library(ascend_forge_android_test SHARED
   "${CMAKE_CURRENT_SOURCE_DIR}/../arena/arena_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../utf8/utf8_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../result/result_test.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../io/io_test.c"
 )
 target_compile_features(ascend_forge_android_test PRIVATE cxx_std_20 c_std_17)
 target_compile_definitions(ascend_forge_android_test PRIVATE
   ASCEND_FORGE_ARENA_TESTS_NO_MAIN
   ASCEND_FORGE_UTF8_TESTS_NO_MAIN
   ASCEND_FORGE_RESULT_TESTS_NO_MAIN
+  ASCEND_FORGE_IO_TESTS_NO_MAIN
 )
 target_include_directories(ascend_forge_android_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../arena"
   "${CMAKE_CURRENT_SOURCE_DIR}/../utf8"
   "${CMAKE_CURRENT_SOURCE_DIR}/../result"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../io"
 )
 get_target_property(ASCEND_FORGE_PREFAB_INCLUDES ascend_forge::ascend_forge
   INTERFACE_INCLUDE_DIRECTORIES
@@ -33,6 +36,7 @@ set_source_files_properties(
   "${CMAKE_CURRENT_SOURCE_DIR}/../arena/arena_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../utf8/utf8_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../result/result_test.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../io/io_test.c"
   PROPERTIES COMPILE_OPTIONS
     "-Wall;-Wextra;-Wpedantic;-Werror;-Wconversion;-Wshadow;-Wcast-align;-Wunused"
 )

@@ -5,6 +5,7 @@ if(ASCEND_FORGE_BUILD_PRIMITIVES)
   add_subdirectory(arena)
   add_subdirectory(utf8)
   add_subdirectory(result)
+  add_subdirectory(io)
 endif()
 # Example for new code:
 #   add_subdirectory(parser)
