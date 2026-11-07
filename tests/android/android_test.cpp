@@ -11,6 +11,7 @@
 
 #include "arena_tests.h"
 #include "utf8_tests.h"
+#include "result_tests.h"
 
 namespace
 {
@@ -53,6 +54,7 @@ int RunTests()
     run.Check(ascend_forge::kVersionMajor >= 0, "major version is non-negative");
     run.Check(ArenaTests_Run() == 0, "arena checks passed");
     run.Check(Utf8Tests_Run() == 0, "utf8 checks passed");
+    run.Check(ResultTests_Run() == 0, "result checks passed");
     return run.failures();
 }
 

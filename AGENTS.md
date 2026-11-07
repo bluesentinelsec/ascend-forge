@@ -153,6 +153,15 @@ The byte span and UTF-8 string (`Bytes_` and `Utf8_` in `include/ascend_forge/ut
 - A NUL terminator is written only by `Utf8Builder_CString`, for an SDL or C boundary.
 - When the arena cannot hold the next append, the builder's text stays as it was.
 
+The result (`Result_` in `include/ascend_forge/result.h`) is the one shape for a fallible call.
+
+- A result says whether the call worked, a code, what was expected, what arrived, and what to do next.
+- The strings borrow static text or the caller's arena. A result does not allocate.
+- Out of memory stays fatal inside the arena. A result does not report it.
+- Code zero is success. A failure uses a caller-defined code other than zero.
+- A failure leaves the callee's output untouched when that callee documents the contract.
+- Jobs may read a result. The borrowed strings stay valid for as long as the memory they point at.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.
