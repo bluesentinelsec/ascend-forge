@@ -58,6 +58,7 @@ jobs:
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/utf8.h" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/result.h" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/io.h" aar-entries.txt
+          grep -qx "prefab/modules/ascend_forge/include/ascend_forge/json.h" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/SDL3/SDL.h" aar-entries.txt
           version="$(tr -d '[:space:]' < VERSION | sed 's/^v//;s/^V//;s/#.*//')"
           unzip -p "${aar}" prefab/prefab.json | grep -q "\"version\"[[:space:]]*:[[:space:]]*\"${version}\""
@@ -68,7 +69,12 @@ jobs:
           grep -q 'Utf8Builder_Append' "${symbols}"
           grep -q 'Result_Fail' "${symbols}"
           grep -q 'Io_ReadFile' "${symbols}"
+          grep -q 'Json_Parse' "${symbols}"
           grep -q 'SDL_malloc' "${symbols}"
+          if grep -q 'yyjson_' "${symbols}"; then
+            echo "yyjson symbols are exported from the Android library" >&2
+            exit 1
+          fi
           rm -f "${symbols}" "${symbols}.so"
 
       - name: Enable KVM

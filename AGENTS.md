@@ -171,6 +171,15 @@ File and path calls (`Io_` in `include/ascend_forge/io.h`) sit on SDL.
 - A short read still consumes arena space for the attempt. A short write may leave a partial file.
 - Out of memory stays fatal inside the arena.
 
+JSON (`Json_` in `include/ascend_forge/json.h`) parses one immutable value into the caller's arena.
+
+- The reader is yyjson 0.13.0, vendored as ANSI C under `third_party/yyjson/` and compiled into the primitives library. It is not a public header, and its symbols stay hidden. No C++ JSON library is part of this primitive.
+- yyjson is built freestanding. Its memory and string calls are `SDL_memcpy`, `SDL_memmove`, `SDL_memset`, `SDL_memcmp`, and `SDL_strlen`. It does not open files. `Json_` passes an arena allocator: growth copies into a new block, and free waits for the arena.
+- A string is a `Utf8` span. A number keeps its source span. Arrays and objects are contiguous ranges.
+- `Json_Stringify` appends to a `Utf8Builder`. A value can live in a private arena while the builder lives in another.
+- Invalid JSON returns a `Result_` and leaves the output value untouched. Arena space used by the attempt stays consumed. A short arena returns a result. `SDL_malloc` failure stays fatal inside the arena.
+- One writer runs during the parse. After it returns, any job may read the tree. The borrowed text stays valid for as long as that arena does.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.

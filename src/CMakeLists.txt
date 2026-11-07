@@ -6,6 +6,7 @@ if(ASCEND_FORGE_BUILD_PRIMITIVES)
   add_subdirectory(utf8)
   add_subdirectory(result)
   add_subdirectory(io)
+  add_subdirectory(json)
 endif()
 # Example for new code:
 #   add_subdirectory(parser)
