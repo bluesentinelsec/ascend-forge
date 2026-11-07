@@ -18,6 +18,8 @@ public final class TestActivity extends Activity {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        // SDL_GetPrefPath reads the activity through JNI ids cached by setupJNI.
+        SDL.setupJNI();
         SDL.setContext(this);
         Thread runner = new Thread(() -> {
             int failures = runNativeTests();
