@@ -19,6 +19,7 @@
 #include "time_tests.h"
 #include "index_tests.h"
 #include "fork_tests.h"
+#include "cli_tests.h"
 
 #include <string>
 #include <string_view>
@@ -77,6 +78,7 @@ int RunTests()
     run.Check(TimeTests_Run() == 0, "time checks passed");
     run.Check(IndexRangeTests_Run() == 0, "index checks passed");
     run.Check(ForkJoinTests_Run() == 0, "fork checks passed");
+    run.Check(CliTests_Run() == 0, "cli checks passed");
     return run.failures();
 }
 

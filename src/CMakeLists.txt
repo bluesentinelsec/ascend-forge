@@ -13,6 +13,7 @@ if(ASCEND_FORGE_BUILD_PRIMITIVES)
   add_subdirectory(time)
   add_subdirectory(index)
   add_subdirectory(fork)
+  add_subdirectory(cli)
 endif()
 # Example for new code:
 #   add_subdirectory(parser)
@@ -20,6 +21,11 @@ endif()
 # Program entrypoint: src/main.c
 # Skipped when this project is consumed via add_subdirectory / FetchContent
 # unless ASCEND_FORGE_BUILD_APP=ON.
+if(ASCEND_FORGE_BUILD_APP AND NOT ASCEND_FORGE_BUILD_PRIMITIVES)
+  message(FATAL_ERROR
+    "The host executable consumes the Cli_ primitive. Set ASCEND_FORGE_BUILD_PRIMITIVES=ON."
+  )
+endif()
 if(ASCEND_FORGE_BUILD_APP)
   add_executable(${PROJECT_NAME}_app main.c)
   set_target_properties(${PROJECT_NAME}_app PROPERTIES
@@ -35,6 +41,7 @@ if(ASCEND_FORGE_BUILD_APP)
   target_link_libraries(${PROJECT_NAME}_app
     PRIVATE
       ${PROJECT_NAME}_lib
+      ${PROJECT_NAME}::primitives
       $<LINK_LIBRARY:WHOLE_ARCHIVE,SDL3::SDL3-static>
   )
   ascend_forge_set_c_warnings(${PROJECT_NAME}_app)

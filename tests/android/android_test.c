@@ -21,6 +21,7 @@
 #include "time_tests.h"
 #include "index_tests.h"
 #include "fork_tests.h"
+#include "cli_tests.h"
 
 static const char *kLogTag = "ascend-forge-android-test";
 static int g_failures = 0;
@@ -59,6 +60,7 @@ static int runTests(void)
     check(TimeTests_Run() == 0, "time checks passed");
     check(IndexRangeTests_Run() == 0, "index checks passed");
     check(ForkJoinTests_Run() == 0, "fork checks passed");
+    check(CliTests_Run() == 0, "cli checks passed");
     return g_failures;
 }
 

@@ -267,6 +267,7 @@ else()
     PATTERN "time.h" EXCLUDE
     PATTERN "index.h" EXCLUDE
     PATTERN "fork.h" EXCLUDE
+    PATTERN "cli.h" EXCLUDE
   )
 endif()
 # Generated version API header (from VERSION + cmake/version.h.in).
