@@ -256,6 +256,7 @@ Get the code working and tested, then refactor. Correctness comes first. Cleanli
 - All compiler warnings are enabled and treated as errors (`-Wall -Wextra -Werror` or equivalent, plus any additional useful flags).
 - The build must be clean on the supported platforms. No warnings are acceptable in committed code.
 - Desktop, Android, iOS, and web link SDL3 statically and run the primitive tests with that platform's other tests.
+- The iOS workflow runs only when someone starts it. Pull requests do not wait on that job.
 - Static analysis and sanitizers (ASan, UBSan) are encouraged during development; the code should remain clean under them.
 - Leverage CI for testing platforms that cannot be tested locally.
 
