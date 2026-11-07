@@ -11,6 +11,7 @@ if(ASCEND_FORGE_BUILD_PRIMITIVES)
   add_subdirectory(atomic)
   add_subdirectory(thread)
   add_subdirectory(time)
+  add_subdirectory(index)
 endif()
 # Example for new code:
 #   add_subdirectory(parser)

@@ -118,6 +118,13 @@ jobs:
           --kill_exit --timeout 120
           build/web-debug/bin/ascend_forge_time_test.html
 
+      - name: Test Debug index checks in headless Chrome
+        run: >
+          emrun --browser=google-chrome
+          --browser_args="--headless=new --no-sandbox --disable-gpu"
+          --kill_exit --timeout 120
+          build/web-debug/bin/ascend_forge_index_test.html
+
       - name: Configure Release
         run: >
           emcmake cmake -S . -B build/web-release -G Ninja
@@ -197,6 +204,13 @@ jobs:
           --browser_args="--headless=new --no-sandbox --disable-gpu"
           --kill_exit --timeout 120
           build/web-release/bin/ascend_forge_time_test.html
+
+      - name: Test Release index checks in headless Chrome
+        run: >
+          emrun --browser=google-chrome
+          --browser_args="--headless=new --no-sandbox --disable-gpu"
+          --kill_exit --timeout 120
+          build/web-release/bin/ascend_forge_index_test.html
 
       - name: Verify canvas demo build
         run: |

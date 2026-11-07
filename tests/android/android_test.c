@@ -19,6 +19,7 @@
 #include "atomic_tests.h"
 #include "thread_tests.h"
 #include "time_tests.h"
+#include "index_tests.h"
 
 static const char *kLogTag = "ascend-forge-android-test";
 static int g_failures = 0;
@@ -55,6 +56,7 @@ static int runTests(void)
     check(AtomicTests_Run() == 0, "atomic checks passed");
     check(ThreadTests_Run() == 0, "thread checks passed");
     check(TimeTests_Run() == 0, "time checks passed");
+    check(IndexRangeTests_Run() == 0, "index checks passed");
     return g_failures;
 }
 
