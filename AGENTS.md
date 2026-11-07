@@ -181,6 +181,16 @@ JSON (`Json_` in `include/ascend_forge/json.h`) parses one immutable value into 
 - Invalid JSON returns a `Result_` and leaves the output value untouched. Arena space used by the attempt stays consumed. A short arena returns a result. `SDL_malloc` failure stays fatal inside the arena.
 - One writer runs during the parse. After it returns, any job may read the tree. The borrowed text stays valid for as long as that arena does.
 
+The slice (`Slice_` in `include/ascend_forge/slice.h`) is a growable contiguous collection.
+
+- `Slice_Define` stamps one element type. Call sites use `Slice_<Name>_Init`, `Slice_<Name>_Append`, and `Slice_<Name>_Remove`, and see a typed pointer, a count, and a capacity.
+- The bytes are one range in the caller's arena. The slice does not call `SDL_malloc`.
+- One owner. Jobs may read a finished slice. They do not share a slice that can still grow.
+- The empty slice is a real pointer and a length of zero. Init does not allocate.
+- Append copies into a new arena block when the current block cannot hold the next element. An append that does not fit leaves the slice unchanged. `SDL_malloc` failure stays fatal inside the arena.
+- Element alignment is the type's alignment, and that alignment is a power of two.
+- Remove compacts the range. It does not free. The arena owns the bytes.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.

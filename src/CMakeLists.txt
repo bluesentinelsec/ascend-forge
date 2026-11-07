@@ -7,6 +7,7 @@ if(ASCEND_FORGE_BUILD_PRIMITIVES)
   add_subdirectory(result)
   add_subdirectory(io)
   add_subdirectory(json)
+  add_subdirectory(slice)
 endif()
 # Example for new code:
 #   add_subdirectory(parser)
