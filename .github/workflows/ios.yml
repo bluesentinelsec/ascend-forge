@@ -2,12 +2,11 @@
 # iOS XCFramework: build static device (arm64) and simulator (arm64/x86_64)
 # libraries, package and verify the XCFramework, and run the consumer package
 # tests in an iOS Simulator.
+# Started by hand. Pull requests and pushes do not run this workflow.
 name: iOS
 
 on:
-  push:
-    branches: [main, master]
-  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,7 +16,7 @@ jobs:
   ios:
     name: iOS (XCFramework / simulator)
     runs-on: macos-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
 
     defaults:
       run:

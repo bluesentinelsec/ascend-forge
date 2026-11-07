@@ -122,6 +122,43 @@ Create registers a local plugin. Get registers a fetched one. Deactivate ends a 
 - Error handling is built around invariants and centralized cleanup. Use explicit error codes or result structs at module boundaries. Fail fast when an invariant is broken.
 - Resource acquisition is paired with a single, obvious cleanup path (goto cleanup labels or equivalent structured approach). Avoid scattered free calls.
 
+## Primitives
+
+Primitives are the stable base the host and every plugin share. They hold no product behavior. A primitive is plain C, it composes with the other primitives, and a job can use it when the caller hands it data that job owns.
+
+A primitive has three homes:
+
+- Public contract: `include/ascend_forge/<name>.h`
+- Implementation: `src/<name>/`, in the primitives static library
+- Tests: `tests/<name>/`
+
+SDL3 is the platform layer under the primitives. Link that library statically on desktop, Android, iOS, and web. It is the C runtime and the window, input, and audio layer. Each of those builds runs the primitive tests. A platform package that publishes a primitive header also publishes the static SDL it was linked with.
+
+The arena (`Arena_` in `include/ascend_forge/arena.h`) is the memory primitive:
+
+- One caller owns an arena. Jobs do not share one. The arena has no lock.
+- The backing store is one `SDL_malloc`. Reset and rewind keep that block. Destroy frees it.
+- Capacity must be greater than zero. A zero capacity returns a non-NULL sentinel and does not allocate.
+- `Arena_Alloc` failure leaves the used count unchanged and returns a non-NULL byte that the caller does not write.
+- A size of zero succeeds and consumes nothing. Alignment is a power of two.
+- When `SDL_malloc` fails, log and exit. Callers do not recover from that failure.
+- A job receives an arena that dies with the job or with the frame. One thread owns it for that lifetime.
+
+Adding a primitive:
+
+- Add the public header, the source in the primitives static library, and self-hosted tests for the contract.
+- Use SDL types. Allocate caller data from an arena the caller owns.
+- Keep the C warning set, and treat warnings as errors. Leave the C++ warning flags on the C++ targets.
+- Run the new tests on desktop, Android, iOS, and web. A check that needs a window runs where a window exists. Every other check runs on all four.
+- Ship the header with the platform packages that link the primitives.
+
+Changing a primitive is a host change:
+
+- State why the host must change.
+- Add the failing test first, then make it pass.
+- Keep the public contract stable. When a signature has to change, update every caller and every platform test in the same change.
+- Re-run the primitive tests on desktop, Android, iOS, and web.
+
 ### Structure
 
 - Keep data structures, pure logic, and UI / presentation code in separate modules or clearly delineated sections.
@@ -218,6 +255,8 @@ Get the code working and tested, then refactor. Correctness comes first. Cleanli
 
 - All compiler warnings are enabled and treated as errors (`-Wall -Wextra -Werror` or equivalent, plus any additional useful flags).
 - The build must be clean on the supported platforms. No warnings are acceptable in committed code.
+- Desktop, Android, iOS, and web link SDL3 statically and run the primitive tests with that platform's other tests.
+- The iOS workflow runs only when someone starts it. Pull requests do not wait on that job.
 - Static analysis and sanitizers (ASan, UBSan) are encouraged during development; the code should remain clean under them.
 - Leverage CI for testing platforms that cannot be tested locally.
 
@@ -282,6 +321,7 @@ When generating or modifying code:
 - Treat `docs/ux/` as living. Follow the UX doc while that surface is unfinished. After its goals are met, update the doc in the same change as the behavior.
 - Write plain, explicit, initialized C. Use SDL types. Avoid NULL in high-level code.
 - Allocate from arenas. Treat allocation failure as fatal.
+- Keep primitives in the shared C library, statically linked to SDL3 on desktop, Android, iOS, and web, and run their tests on each of those platforms.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
 - Separate data, logic, and presentation.
 - Name things so intent is obvious. Prefix for namespacing.

@@ -17,6 +17,14 @@ target_link_options(ascend_forge_web_demo
     "SHELL:-sEXIT_RUNTIME=0"
     "--shell-file" "${CMAKE_CURRENT_SOURCE_DIR}/shell.html"
 )
+if(ASCEND_FORGE_BUILD_PRIMITIVES)
+  add_dependencies(ascend_forge_web_demo ${PROJECT_NAME}_primitives)
+  target_link_options(ascend_forge_web_demo
+    PRIVATE
+      "LINKER:--whole-archive,$<TARGET_FILE:${PROJECT_NAME}_primitives>,--no-whole-archive"
+  )
+  target_link_libraries(ascend_forge_web_demo PRIVATE SDL3::SDL3-static)
+endif()
 set_property(TARGET ascend_forge_web_demo APPEND PROPERTY
   LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shell.html"
 )
