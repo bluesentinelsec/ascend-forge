@@ -9,6 +9,7 @@
 #include <ascend_forge/version.hpp>
 
 #include "arena_tests.h"
+#include "utf8_tests.h"
 
 #include <string>
 #include <string_view>
@@ -57,6 +58,7 @@ int RunTests()
               "Version() matches the compiled major version");
     run.Check(ascend_forge::kVersionMajor >= 0, "major version is non-negative");
     run.Check(ArenaTests_Run() == 0, "arena checks passed");
+    run.Check(Utf8Tests_Run() == 0, "utf8 checks passed");
     return run.failures();
 }
 

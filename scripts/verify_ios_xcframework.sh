@@ -27,6 +27,7 @@ for identifier in ios-arm64 ios-arm64_x86_64-simulator; do
     header_root="${xcframework}/${identifier}/Headers"
     test -f "${header_root}/ascend_forge/version.hpp"
     test -f "${header_root}/ascend_forge/arena.h"
+    test -f "${header_root}/ascend_forge/utf8.h"
     test -f "${header_root}/SDL3/SDL.h"
 done
 
@@ -45,6 +46,7 @@ trap 'rm -f "${symbols_file}"' EXIT
 nm -gU "${device_library}" >"${symbols_file}"
 grep -qE '[ST] _?_ZN12ascend_forge7Version' "${symbols_file}"
 grep -qE 'T _Arena_Create$' "${symbols_file}"
+grep -qE 'T _Utf8Builder_Append$' "${symbols_file}"
 grep -qE 'T _SDL_malloc$' "${symbols_file}"
 
 echo "Verified iOS XCFramework ${expected_version}"

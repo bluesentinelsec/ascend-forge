@@ -265,6 +265,7 @@ else()
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
     PATTERN "arena.h" EXCLUDE
+    PATTERN "utf8.h" EXCLUDE
   )
 endif()
 # Generated version API header (from VERSION + cmake/version.hpp.in).

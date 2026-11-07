@@ -55,6 +55,7 @@ jobs:
           done
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/version.hpp" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/arena.h" aar-entries.txt
+          grep -qx "prefab/modules/ascend_forge/include/ascend_forge/utf8.h" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/SDL3/SDL.h" aar-entries.txt
           version="$(tr -d '[:space:]' < VERSION | sed 's/^v//;s/^V//;s/#.*//')"
           unzip -p "${aar}" prefab/prefab.json | grep -q "\"version\"[[:space:]]*:[[:space:]]*\"${version}\""
@@ -62,6 +63,7 @@ jobs:
           unzip -p "${aar}" jni/x86_64/libascend_forge.so > "${symbols}.so"
           nm -D --defined-only "${symbols}.so" > "${symbols}"
           grep -q 'Arena_Create' "${symbols}"
+          grep -q 'Utf8Builder_Append' "${symbols}"
           grep -q 'SDL_malloc' "${symbols}"
           rm -f "${symbols}" "${symbols}.so"
 

@@ -3,6 +3,7 @@
 add_subdirectory(version)
 if(ASCEND_FORGE_BUILD_PRIMITIVES)
   add_subdirectory(arena)
+  add_subdirectory(utf8)
 endif()
 # Example for new code:
 #   add_subdirectory(parser)
