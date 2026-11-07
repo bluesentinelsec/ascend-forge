@@ -209,6 +209,12 @@ The thread (`Thread_` in `include/ascend_forge/thread.h`) starts one worker and 
 - Web stays single-threaded. The primitive compiles there, and the rejection checks run there. Spawn checks run on desktop and Android. The iOS workflow stays manual.
 - Plugins submit jobs to the host. They do not call `SDL_CreateThread` for host or scene data.
 
+The time (`Time_` in `include/ascend_forge/time.h`) is the monotonic nanosecond clock.
+
+- `Time_Now` returns `SDL_GetTicksNS`. The value does not go backward for the life of the process. It is not a wall clock.
+- The call does not allocate and does not start a thread.
+- A phase join reads this clock when it needs a duration. Higher layers do not call the SDL timer themselves.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.
@@ -389,6 +395,7 @@ When generating or modifying code:
 - Prefer `Slice_` for a dynamic collection. Keep its elements in the caller's arena.
 - Publish a finished value with `Atomic_Publish`. Readers use `Atomic_Acquire`.
 - Start a worker with `Thread_Run` and wait with `Thread_Join`. That worker does not call SDL window, event, or renderer APIs.
+- Read a duration with `Time_Now`. The clock is monotonic. It is not a wall clock.
 - Keep primitives in the shared C library, statically linked to SDL3 on desktop, Android, iOS, and web, and run their tests on each of those platforms.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
 - Separate data, logic, and presentation.

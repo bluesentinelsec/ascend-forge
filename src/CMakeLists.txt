@@ -10,6 +10,7 @@ if(ASCEND_FORGE_BUILD_PRIMITIVES)
   add_subdirectory(slice)
   add_subdirectory(atomic)
   add_subdirectory(thread)
+  add_subdirectory(time)
 endif()
 # Example for new code:
 #   add_subdirectory(parser)

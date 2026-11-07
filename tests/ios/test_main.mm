@@ -16,6 +16,7 @@
 #include "slice_tests.h"
 #include "atomic_tests.h"
 #include "thread_tests.h"
+#include "time_tests.h"
 
 #include <string>
 #include <string_view>
@@ -71,6 +72,7 @@ int RunTests()
     run.Check(SliceTests_Run() == 0, "slice checks passed");
     run.Check(AtomicTests_Run() == 0, "atomic checks passed");
     run.Check(ThreadTests_Run() == 0, "thread checks passed");
+    run.Check(TimeTests_Run() == 0, "time checks passed");
     return run.failures();
 }
 
