@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+import org.libsdl.app.SDL;
+
 public final class TestActivity extends Activity {
     private static final String TAG = "ascend-forge-android-test";
 
@@ -16,6 +18,7 @@ public final class TestActivity extends Activity {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        SDL.setContext(this);
         Thread runner = new Thread(() -> {
             int failures = runNativeTests();
             if (failures == 0) {
