@@ -28,20 +28,25 @@ set(ASCEND_FORGE_PACKAGE_HEADERS
 add_executable(ascend_forge_ios_test MACOSX_BUNDLE
   test_main.mm
   "${CMAKE_CURRENT_SOURCE_DIR}/../arena/arena_test.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../utf8/utf8_test.c"
 )
 target_compile_features(ascend_forge_ios_test PRIVATE cxx_std_20 c_std_17)
 set_source_files_properties(test_main.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
-set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/../arena/arena_test.c"
+set_source_files_properties(
+  "${CMAKE_CURRENT_SOURCE_DIR}/../arena/arena_test.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../utf8/utf8_test.c"
   PROPERTIES COMPILE_OPTIONS
     "-Wall;-Wextra;-Wpedantic;-Werror;-Wconversion;-Wshadow;-Wcast-align;-Wunused"
 )
 target_compile_definitions(ascend_forge_ios_test PRIVATE
   ASCEND_FORGE_EXPECTED_VERSION="${ASCEND_FORGE_EXPECTED_VERSION}"
   ASCEND_FORGE_ARENA_TESTS_NO_MAIN
+  ASCEND_FORGE_UTF8_TESTS_NO_MAIN
 )
 target_include_directories(ascend_forge_ios_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include"
   "${CMAKE_CURRENT_SOURCE_DIR}/../arena"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../utf8"
 )
 target_include_directories(ascend_forge_ios_test SYSTEM PRIVATE
   "${ASCEND_FORGE_PACKAGE_HEADERS}"

@@ -144,6 +144,15 @@ The arena (`Arena_` in `include/ascend_forge/arena.h`) is the memory primitive:
 - When `SDL_malloc` fails, log and exit. Callers do not recover from that failure.
 - A job receives an arena that dies with the job or with the frame. One thread owns it for that lifetime.
 
+The byte span and UTF-8 string (`Bytes_` and `Utf8_` in `include/ascend_forge/utf8.h`) borrow memory. They do not own it.
+
+- A span is a pointer and a length. The empty span is a real pointer and a length of zero.
+- Compare, prefix, suffix, and UTF-8 walks use SDL's string functions. A byte span compares with `SDL_memcmp`. UTF-8 text compares with `SDL_strncmp`.
+- `Utf8_Next` walks with `SDL_StepUTF8`. A byte that is not UTF-8 is invalid. The real U+FFFD sequence stays valid.
+- `Utf8Builder_` appends into one arena and has one owner. Jobs may read the borrowed text. They do not share the builder.
+- A NUL terminator is written only by `Utf8Builder_CString`, for an SDL or C boundary.
+- When the arena cannot hold the next append, the builder's text stays as it was.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.
