@@ -250,7 +250,7 @@ endif()
 include(GNUInstallDirs)
 # Desktop install of the C++ core stays free of the primitives header: that
 # archive does not contain them. The web package merges static SDL into
-# libascend_forge.a below, so its install ships arena.h and the SDL headers.
+# libascend_forge.a below, so its install ships the primitive headers and the SDL headers.
 if(EMSCRIPTEN AND ASCEND_FORGE_BUILD_PRIMITIVES)
   install(DIRECTORY include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -266,6 +266,7 @@ else()
     FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
     PATTERN "arena.h" EXCLUDE
     PATTERN "utf8.h" EXCLUDE
+    PATTERN "result.h" EXCLUDE
   )
 endif()
 # Generated version API header (from VERSION + cmake/version.hpp.in).
