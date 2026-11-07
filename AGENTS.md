@@ -134,7 +134,7 @@ A primitive has three homes:
 - Implementation: `src/<name>/`, in the primitives static library
 - Tests: `tests/<name>/`
 
-SDL3 is the platform layer under the primitives. Link that library statically on desktop, Android, iOS, and web. It is the C runtime and the window, input, and audio layer. Each of those builds runs the primitive tests. A platform package that publishes a primitive header also publishes the static SDL it was linked with.
+SDL3 is the platform layer under the primitives. Link that library statically on desktop, Android, iOS, and web. It is the C runtime and the window, input, and audio layer. Each of those builds runs the primitive tests. A platform package that publishes a primitive header also publishes the static SDL it was linked with. The desktop host executable links that same static library, so a plugin uses the host's SDL and not a second copy. The installed core archive does not link it.
 
 The arena (`Arena_` in `include/ascend_forge/arena.h`) is the memory primitive:
 
@@ -393,6 +393,7 @@ When generating or modifying code:
 - Treat `docs/ux/` as living. Follow the UX doc while that surface is unfinished. After its goals are met, update the doc in the same change as the behavior.
 - Write plain, explicit, initialized C. Use SDL types. Avoid NULL in high-level code.
 - The desktop entrypoint is `src/main.c`. Do not add `src/main.cpp`.
+- The desktop host executable links `SDL3-static`. Do not link that library into the installed core archive.
 - Allocate from arenas. Treat allocation failure as fatal.
 - Prefer `Slice_` for a dynamic collection. Keep its elements in the caller's arena.
 - Publish a finished value with `Atomic_Publish`. Readers use `Atomic_Acquire`.
