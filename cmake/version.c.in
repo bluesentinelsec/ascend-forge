@@ -1,0 +1,6 @@
+#include "@PROJECT_NAMESPACE@/version.h"
+
+const char *Version_String(void)
+{
+    return "@PROJECT_VERSION_STRING@";
+}

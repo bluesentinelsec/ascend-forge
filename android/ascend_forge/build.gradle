@@ -104,11 +104,11 @@ android {
 }
 
 // Prefab ships a header snapshot with the AAR: the public include/ tree plus a
-// rendered version.hpp (Gradle-side equivalent of the CMake configure_file).
+// rendered version.h (Gradle-side equivalent of the CMake configure_file).
 tasks.register("preparePrefabHeaders") {
     inputs.dir(new File(repositoryRoot, "include"))
     inputs.file(new File(repositoryRoot, "VERSION"))
-    inputs.file(new File(repositoryRoot, "cmake/version.hpp.in"))
+    inputs.file(new File(repositoryRoot, "cmake/version.h.in"))
     outputs.dir(prefabHeaders)
 
     doLast {
@@ -124,12 +124,12 @@ tasks.register("preparePrefabHeaders") {
             throw new GradleException("VERSION must begin with numeric major.minor.patch")
         }
 
-        def versionHeader = new File(repositoryRoot, "cmake/version.hpp.in").text
+        def versionHeader = new File(repositoryRoot, "cmake/version.h.in").text
                 .replace("@PROJECT_NAMESPACE@", "ascend_forge")
                 .replace("@PROJECT_VERSION_MAJOR@", components[0])
                 .replace("@PROJECT_VERSION_MINOR@", components[1])
                 .replace("@PROJECT_VERSION_PATCH@", components[2])
-        def output = new File(prefabHeaders, "ascend_forge/version.hpp")
+        def output = new File(prefabHeaders, "ascend_forge/version.h")
         output.parentFile.mkdirs()
         output.text = versionHeader
     }

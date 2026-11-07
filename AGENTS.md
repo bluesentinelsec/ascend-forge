@@ -30,6 +30,7 @@ The long-term goal is that the host layer stabilizes early. Subsequent work is a
 - Everything else is implemented as first-party project libraries. Minimize external dependencies and license obligations. The project owns its fate.
 - Target high portability. Prefer SDL types and the SDL standard library wrappers so behavior stays consistent across platforms.
 - No C++. No heavy frameworks. No dependency managers that pull in large transitive graphs.
+- The desktop entrypoint is `src/main.c`. The version API is the C header generated from `cmake/version.h.in`. Apple UI stays Objective-C. `tests/ios/test_main.mm` may stay Objective-C. The Android activity stays Java. SDL sources stay as SDL ships them.
 - Plugin authors should be able to write (unsafe) native plugins in C, and safe / managed plugins in Lua (embedded).
 - Unit tests are of critical importance. Everything should be testable, especially plugins.
 - One of the default / host-provided plugins should be "New Plugin": a plugin bootstrap, either in Lua or in C. Users should fill out a menu whose inputs bootstrap the plugin following idiomatic convention from robust / professional-grade templates. Make build, test, and deploy cycles fast and easy.
@@ -219,7 +220,7 @@ Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.
 - Use SDL types. Allocate caller data from an arena the caller owns.
-- Keep the C warning set, and treat warnings as errors. Leave the C++ warning flags on the C++ targets.
+- Keep the C warning set, and treat warnings as errors.
 - Run the new tests on desktop, Android, iOS, and web. A check that needs a window runs where a window exists. Every other check runs on all four.
 - Ship the header with the platform packages that link the primitives.
 
@@ -391,6 +392,7 @@ When generating or modifying code:
 - Leave register, activate, deactivate, and destroy to the host. Remove is a caller step.
 - Treat `docs/ux/` as living. Follow the UX doc while that surface is unfinished. After its goals are met, update the doc in the same change as the behavior.
 - Write plain, explicit, initialized C. Use SDL types. Avoid NULL in high-level code.
+- The desktop entrypoint is `src/main.c`. Do not add `src/main.cpp`.
 - Allocate from arenas. Treat allocation failure as fatal.
 - Prefer `Slice_` for a dynamic collection. Keep its elements in the caller's arena.
 - Publish a finished value with `Atomic_Publish`. Readers use `Atomic_Acquire`.

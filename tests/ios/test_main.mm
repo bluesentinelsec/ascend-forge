@@ -6,7 +6,7 @@
 #import <UIKit/UIKit.h>
 #import <os/log.h>
 
-#include <ascend_forge/version.hpp>
+#include <ascend_forge/version.h>
 
 #include "arena_tests.h"
 #include "utf8_tests.h"
@@ -57,13 +57,13 @@ class TestRun
 int RunTests()
 {
     TestRun run;
-    const std::string_view version = ascend_forge::Version();
+    const std::string_view version = Version_String();
     run.Check(version == ASCEND_FORGE_EXPECTED_VERSION,
               "XCFramework exports the VERSION-derived API");
-    const std::string major_prefix = std::to_string(ascend_forge::kVersionMajor) + ".";
+    const std::string major_prefix = std::to_string(ASCEND_FORGE_VERSION_MAJOR) + ".";
     run.Check(version.substr(0, major_prefix.size()) == major_prefix,
-              "Version() matches the compiled major version");
-    run.Check(ascend_forge::kVersionMajor >= 0, "major version is non-negative");
+              "Version_String matches the compiled major version");
+    run.Check(ASCEND_FORGE_VERSION_MAJOR >= 0, "major version is non-negative");
     run.Check(ArenaTests_Run() == 0, "arena checks passed");
     run.Check(Utf8Tests_Run() == 0, "utf8 checks passed");
     run.Check(ResultTests_Run() == 0, "result checks passed");

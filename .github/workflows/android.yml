@@ -53,7 +53,7 @@ jobs:
             grep -qx "prefab/modules/ascend_forge/libs/android.${abi}/libascend_forge.so" aar-entries.txt
             grep -qx "jni/${abi}/libascend_forge.so" aar-entries.txt
           done
-          grep -qx "prefab/modules/ascend_forge/include/ascend_forge/version.hpp" aar-entries.txt
+          grep -qx "prefab/modules/ascend_forge/include/ascend_forge/version.h" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/arena.h" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/utf8.h" aar-entries.txt
           grep -qx "prefab/modules/ascend_forge/include/ascend_forge/result.h" aar-entries.txt
@@ -69,6 +69,7 @@ jobs:
           symbols="$(mktemp)"
           unzip -p "${aar}" jni/x86_64/libascend_forge.so > "${symbols}.so"
           nm -D --defined-only "${symbols}.so" > "${symbols}"
+          grep -q 'Version_String' "${symbols}"
           grep -q 'Arena_Create' "${symbols}"
           grep -q 'Utf8Builder_Append' "${symbols}"
           grep -q 'Result_Fail' "${symbols}"
