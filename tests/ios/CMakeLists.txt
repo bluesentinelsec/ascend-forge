@@ -38,6 +38,7 @@ add_executable(ascend_forge_ios_test MACOSX_BUNDLE
   "${CMAKE_CURRENT_SOURCE_DIR}/../time/time_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../index/index_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../fork/fork_test.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../cli/cli_test.c"
 )
 target_compile_features(ascend_forge_ios_test PRIVATE cxx_std_20 c_std_17)
 set_source_files_properties(test_main.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
@@ -53,6 +54,7 @@ set_source_files_properties(
   "${CMAKE_CURRENT_SOURCE_DIR}/../time/time_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../index/index_test.c"
   "${CMAKE_CURRENT_SOURCE_DIR}/../fork/fork_test.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../cli/cli_test.c"
   PROPERTIES COMPILE_OPTIONS
     "-Wall;-Wextra;-Wpedantic;-Werror;-Wconversion;-Wshadow;-Wcast-align;-Wunused"
 )
@@ -69,6 +71,7 @@ target_compile_definitions(ascend_forge_ios_test PRIVATE
   ASCEND_FORGE_TIME_TESTS_NO_MAIN
   ASCEND_FORGE_INDEX_TESTS_NO_MAIN
   ASCEND_FORGE_FORK_TESTS_NO_MAIN
+  ASCEND_FORGE_CLI_TESTS_NO_MAIN
 )
 target_include_directories(ascend_forge_ios_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include"
@@ -83,6 +86,7 @@ target_include_directories(ascend_forge_ios_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../time"
   "${CMAKE_CURRENT_SOURCE_DIR}/../index"
   "${CMAKE_CURRENT_SOURCE_DIR}/../fork"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../cli"
 )
 target_include_directories(ascend_forge_ios_test SYSTEM PRIVATE
   "${ASCEND_FORGE_PACKAGE_HEADERS}"

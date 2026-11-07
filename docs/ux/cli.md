@@ -164,16 +164,16 @@ ascend-forge test new --plugin ./plugins/png-viewer --name RejectsEmptyInput
 `run` tries the plugin. `inspect` prints its name, version, entry points, tags, group, dependencies, and source. `debug` runs it with symbols and stops on the first broken invariant. In a terminal, `run` with no `--plugin` asks which plugin to start, unless the workspace has only one. Pass `--plugin` and it does not ask.
 
 ```text
-ascend-forge run --plugin <plugin> [--entry <entry>] [-- <plugin-arguments>]
+ascend-forge run --plugin <plugin> [--entry <entry>] [--args <plugin-arguments>...]
 ascend-forge inspect --plugin <plugin>
-ascend-forge debug --plugin <plugin> [-- <plugin-arguments>]
+ascend-forge debug --plugin <plugin> [--args <plugin-arguments>...]
 ```
 
 ```bash
-ascend-forge run --plugin ./plugins/png-viewer -- sample.png --out thumb.png
-ascend-forge run --plugin ./plugins/png-viewer --entry thumb -- sample.png
+ascend-forge run --plugin ./plugins/png-viewer --args sample.png --out thumb.png
+ascend-forge run --plugin ./plugins/png-viewer --entry thumb --args sample.png
 ascend-forge inspect --plugin ./plugins/png-viewer
-ascend-forge debug --plugin ./plugins/png-viewer -- sample.png
+ascend-forge debug --plugin ./plugins/png-viewer --args sample.png
 ```
 
 ### Set the version and publish
@@ -236,16 +236,16 @@ ascend-forge get github.com/acme/forge-plugins/png-viewer@v0.1.0
 
 You want to invoke one plugin, or several, and pass the arguments that plugin defines.
 
-Arguments after `--` belong to the plugin. `--entry` picks an entry point such as `thumb`. `--file` is how you name several plugins and give each its own arguments. In a terminal, `run` with no plugin asks which one to start. `--plugin` and `--file` skip that question.
+`--args` stops host options. Arguments after it belong to the plugin, including arguments that start with `-`. `--entry` picks an entry point such as `thumb`. `--file` is how you name several plugins and give each its own arguments. In a terminal, `run` with no plugin asks which one to start. `--plugin` and `--file` skip that question.
 
 ```text
-ascend-forge run --plugin <plugin>[@v<version>] [--entry <entry>] [-- <plugin-arguments>]
+ascend-forge run --plugin <plugin>[@v<version>] [--entry <entry>] [--args <plugin-arguments>...]
 ascend-forge run --file <request.json>
 ```
 
 ```bash
-ascend-forge run --plugin ./plugins/png-viewer -- sample.png --out thumb.png
-ascend-forge run --plugin github.com/acme/forge-plugins/png-viewer@v0.1.0 --entry thumb -- sample.png
+ascend-forge run --plugin ./plugins/png-viewer --args sample.png --out thumb.png
+ascend-forge run --plugin github.com/acme/forge-plugins/png-viewer@v0.1.0 --entry thumb --args sample.png
 ascend-forge run --file ./request.json
 ascend-forge run --json --file ./request.json
 ```
@@ -271,7 +271,7 @@ ascend-forge get <plugin>@v<version>
 
 ```bash
 ascend-forge get github.com/acme/forge-plugins/png-viewer@v0.2.0
-ascend-forge run --plugin github.com/acme/forge-plugins/png-viewer@v0.2.0 -- sample.png
+ascend-forge run --plugin github.com/acme/forge-plugins/png-viewer@v0.2.0 --args sample.png
 ```
 
 ### Remove a plugin
@@ -296,7 +296,7 @@ Create and get register the plugin, so the catalog and its entry points can see 
 ```bash
 ascend-forge plugin new --name png-viewer --kind gui --lang lua --output library
 ascend-forge get github.com/acme/forge-plugins/png-viewer@v0.1.0
-ascend-forge run --plugin ./plugins/png-viewer -- sample.png
+ascend-forge run --plugin ./plugins/png-viewer --args sample.png
 ascend-forge plugin remove --plugin ./plugins/png-viewer
 ```
 

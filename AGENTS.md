@@ -233,6 +233,14 @@ The fork-join (`ForkJoin_` in `include/ascend_forge/fork.h`) runs one index-rang
 - On web, where threads do not start, the same call walks each part on the caller and the count still reaches zero.
 - A null argument, a worker count of zero, or a range whose end is before its begin is rejected and the function is not called. The temporary worker records are one SDL allocation freed before return. When that allocation fails, the call logs and exits.
 
+The command line (`Cli_` in `include/ascend_forge/cli.h`) turns argv into one request.
+
+- The caller owns the command table and the output storage. Parse borrows argv. A temporary parse record is one SDL allocation freed before return. When that allocation fails, the call logs and exits.
+- Help and errors follow argparse. Names match the declared spelling. `--name value` and `--name=value` both supply a value. A declared spelling is taken whole, so `-run` stays one option. `-h` and `--help` ask for help. A version option stops the parse.
+- A remainder option stops option processing and keeps every following argument. The host declares that option as `--args`.
+- A bad invocation is a completed parse. The value arrays stay as the caller left them. A null or broken table is rejected and the output is left untouched.
+- The parser does not print, and a user error does not exit. The host writes the sentence.
+
 Adding a primitive:
 
 - Add the public header, the source in the primitives static library, and self-hosted tests for the contract.
@@ -363,7 +371,7 @@ Get the code working and tested, then refactor. Correctness comes first. Cleanli
 
 Docs under `docs/ux/` are living documents, one per way of invoking the host. `docs/ux/cli.md` is the CLI.
 
-While a surface is still being built, its UX doc is the roadmap. Implement the feature so the behavior matches the doc. The CLI is in this phase. The commands in `docs/ux/cli.md` are the goal, and the host does not implement them yet.
+While a surface is still being built, its UX doc is the roadmap. Implement the feature so the behavior matches the doc. The CLI is in this phase. The host parses with `Cli_` and implements `version` and help. The other commands in `docs/ux/cli.md` are the goal, and the host does not implement them yet.
 
 When the goals in a UX doc are met, that doc switches to maintenance. It then describes what the implementation does. A behavior change updates the doc in the same change. A doc that disagrees with the implementation is wrong.
 
@@ -418,6 +426,7 @@ When generating or modifying code:
 - Read a duration with `Time_Now`. The clock is monotonic. It is not a wall clock.
 - Split work with `IndexRange_Split`. A job walks its half-open range with `IndexRange_ForEach` and writes only that range.
 - Run that split with `ForkJoin_Run`. The caller chooses the worker count. The call returns when the completion count is zero.
+- Parse argv with `Cli_Parse`. `--args` is the remainder that keeps the plugin's arguments.
 - Keep primitives in the shared C library, statically linked to SDL3 on desktop, Android, iOS, and web, and run their tests on each of those platforms.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
 - Separate data, logic, and presentation.
