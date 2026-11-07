@@ -117,6 +117,7 @@ Create registers a local plugin. Get registers a fetched one. Deactivate ends a 
 
 - NULL is not permitted in high-level code. It may appear only in low-level unsafe or platform boundary code, and must be confined and documented.
 - Prefer arena allocation (or other bulk/data-oriented allocators) for scene and plugin state. Individual `malloc`/`free` pairs should be rare outside the arena implementation itself.
+- Prefer `Slice_` (`include/ascend_forge/slice.h`) for a dynamic collection. Stamp the element type with `Slice_Define` and keep the elements in the caller's arena.
 - Use SDL family allocation functions (and SDL3 standard library wrapper functions in general).
 - Memory allocation failure is fatal by default. The program logs the failure and exits. Do not attempt graceful recovery from OOM in normal application paths; the complexity is not worth it for this class of tool.
 - Error handling is built around invariants and centralized cleanup. Use explicit error codes or result structs at module boundaries. Fail fast when an invariant is broken.
@@ -180,6 +181,16 @@ JSON (`Json_` in `include/ascend_forge/json.h`) parses one immutable value into 
 - `Json_Stringify` appends to a `Utf8Builder`. A value can live in a private arena while the builder lives in another.
 - Invalid JSON returns a `Result_` and leaves the output value untouched. Arena space used by the attempt stays consumed. A short arena returns a result. `SDL_malloc` failure stays fatal inside the arena.
 - One writer runs during the parse. After it returns, any job may read the tree. The borrowed text stays valid for as long as that arena does.
+
+The slice (`Slice_` in `include/ascend_forge/slice.h`) is the preferred dynamic collection. It is a growable contiguous range.
+
+- `Slice_Define` stamps one element type. Call sites use `Slice_<Name>_Init`, `Slice_<Name>_Append`, and `Slice_<Name>_Remove`, and see a typed pointer, a count, and a capacity.
+- The bytes are one range in the caller's arena. The slice does not call `SDL_malloc`.
+- One owner. Jobs may read a finished slice. They do not share a slice that can still grow.
+- The empty slice is a real pointer and a length of zero. Init does not allocate.
+- Append copies into a new arena block when the current block cannot hold the next element. An append that does not fit leaves the slice unchanged. `SDL_malloc` failure stays fatal inside the arena.
+- Element alignment is the type's alignment, and that alignment is a power of two.
+- Remove compacts the range. It does not free. The arena owns the bytes.
 
 Adding a primitive:
 
@@ -358,6 +369,7 @@ When generating or modifying code:
 - Treat `docs/ux/` as living. Follow the UX doc while that surface is unfinished. After its goals are met, update the doc in the same change as the behavior.
 - Write plain, explicit, initialized C. Use SDL types. Avoid NULL in high-level code.
 - Allocate from arenas. Treat allocation failure as fatal.
+- Prefer `Slice_` for a dynamic collection. Keep its elements in the caller's arena.
 - Keep primitives in the shared C library, statically linked to SDL3 on desktop, Android, iOS, and web, and run their tests on each of those platforms.
 - Submit work to the host scheduler. One writer per byte per phase. Join before the next phase reads the result. Workers do not call SDL or take locks.
 - Separate data, logic, and presentation.
