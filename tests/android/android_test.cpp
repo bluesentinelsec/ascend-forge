@@ -13,6 +13,7 @@
 #include "utf8_tests.h"
 #include "result_tests.h"
 #include "io_tests.h"
+#include "json_tests.h"
 
 namespace
 {
@@ -57,6 +58,7 @@ int RunTests()
     run.Check(Utf8Tests_Run() == 0, "utf8 checks passed");
     run.Check(ResultTests_Run() == 0, "result checks passed");
     run.Check(IoTests_Run() == 0, "io checks passed");
+    run.Check(JsonTests_Run() == 0, "json checks passed");
     return run.failures();
 }
 
