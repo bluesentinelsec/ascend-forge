@@ -38,7 +38,8 @@ EM_JS(void, ascend_forge_draw_frame, (double x, double y, double size, const cha
      * rejects '$' under -Werror (-Wdollar-in-identifier-extension). */
     g.font = (14 * dpr) + 'px monospace';
     g.fillText(UTF8ToString(hud), 12 * dpr, 24 * dpr);
-});
+/* EM_JS is already a declaration in C. A semicolon here is -Wextra-semi. */
+})
 /* clang-format on */
 
 typedef struct GameState {
