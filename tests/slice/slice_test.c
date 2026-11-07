@@ -37,11 +37,10 @@ static bool aligned(const void *data, size_t alignment)
 static void test_empty_slice_does_not_allocate(void)
 {
     Arena *arena = NULL;
-    Slice_Numbers numbers;
-    Slice_Numbers again;
+    Slice_Numbers numbers = {NULL, 0u, 0u};
+    Slice_Numbers again = {NULL, 0u, 0u};
     Uint64 mark = 1u;
 
-    numbers.data = NULL;
     numbers.count = 7u;
     numbers.capacity = 9u;
     expect_true(Arena_Create(64u, &arena), "Slice_Empty_Create");
@@ -62,7 +61,7 @@ static void test_empty_slice_does_not_allocate(void)
 static void test_one_element(void)
 {
     Arena *arena = NULL;
-    Slice_Numbers numbers;
+    Slice_Numbers numbers = {NULL, 0u, 0u};
     Uint32 *storage = NULL;
 
     expect_true(Arena_Create(256u, &arena), "Slice_One_Create");
@@ -87,7 +86,7 @@ static void test_one_element(void)
 static void test_spare_capacity_does_not_allocate(void)
 {
     Arena *arena = NULL;
-    Slice_Numbers numbers;
+    Slice_Numbers numbers = {NULL, 0u, 0u};
     Uint32 *storage = NULL;
     Uint64 mark = 0u;
     Uint64 count = 0u;
@@ -117,7 +116,7 @@ static void test_spare_capacity_does_not_allocate(void)
 static void test_growth_stops_when_the_arena_is_full(void)
 {
     Arena *arena = NULL;
-    Slice_Numbers numbers;
+    Slice_Numbers numbers = {NULL, 0u, 0u};
     Uint64 mark = 0u;
     Uint64 count = 0u;
     Uint64 index = 0u;
@@ -147,7 +146,7 @@ static void test_growth_stops_when_the_arena_is_full(void)
 static void test_failed_append_leaves_elements(void)
 {
     Arena *arena = NULL;
-    Slice_Numbers numbers;
+    Slice_Numbers numbers = {NULL, 0u, 0u};
     void *data = NULL;
     Uint64 count = 0u;
     Uint64 capacity = 0u;
@@ -171,7 +170,7 @@ static void test_failed_append_leaves_elements(void)
 static void test_rejected_alignment_leaves_elements(void)
 {
     Arena *arena = NULL;
-    Slice_Numbers numbers;
+    Slice_Numbers numbers = {NULL, 0u, 0u};
     void *data = NULL;
     Uint64 count = 0u;
     Uint64 capacity = 0u;
@@ -196,7 +195,7 @@ static void test_rejected_alignment_leaves_elements(void)
 static void test_second_type_remove_compacts(void)
 {
     Arena *arena = NULL;
-    Slice_Pairs pairs;
+    Slice_Pairs pairs = {NULL, 0u, 0u};
     SlicePair first;
     SlicePair second;
     SlicePair third;
