@@ -4,6 +4,8 @@ This is the terminal interface for Ascend Forge. You use it to write a plugin, t
 
 In a terminal, a command with no required arguments uses professional defaults. It asks a question only when a choice has no safe default, and every question shows that default so you can press enter. Pass flags when you already know the answers. CI and agents pass flags. They are never asked a question.
 
+A one-letter flag takes one dash: `-v`, `-r`. A word takes two dashes: `--verbose`, `--run`, `--plugin`. When a flag has both forms, they mean the same thing.
+
 A plugin is named the way Go names a module.
 
 ```text
@@ -142,24 +144,24 @@ ascend-forge publish --plugin ./plugins/png-viewer --pack archive
 
 You changed the plugin and want to know if that change holds.
 
-`test` follows `go test`. With no arguments it discovers and runs every test in the workspace. `-run` selects tests by name. `-list` prints matching test names and does not run them. `-v` prints each test as it runs. `./...` means every plugin.
+`test` follows `go test`. With no arguments it discovers and runs every test in the workspace. `--run` selects tests by name, and `-r` is the same flag. `--list` prints matching test names and does not run them. `-v` prints each test as it runs, and `--verbose` is the same flag. `./...` means every plugin.
 
 ```text
-ascend-forge test [plugin|./...] [-run <name>] [-list <name>] [-v]
+ascend-forge test [plugin|./...] [-r|--run <name>] [--list <name>] [-v|--verbose]
 ascend-forge test new --plugin <plugin> --name <test-name>
 ```
 
 ```bash
 ascend-forge test
 ascend-forge test ./plugins/png-viewer
-ascend-forge test ./plugins/png-viewer -run RejectsEmpty
-ascend-forge test ./plugins/png-viewer -run RejectsEmpty -v
-ascend-forge test ./plugins/png-viewer -list .
+ascend-forge test ./plugins/png-viewer -r RejectsEmpty
+ascend-forge test ./plugins/png-viewer --run RejectsEmpty -v
+ascend-forge test ./plugins/png-viewer --list .
 ascend-forge test ./...
 ascend-forge test new --plugin ./plugins/png-viewer --name RejectsEmptyInput
 ```
 
-`test` does not ask questions. Filtering is `-run`.
+`test` does not ask questions. Filtering is `--run`.
 
 `run` tries the plugin. `inspect` prints its name, version, entry points, tags, group, dependencies, and source. `debug` runs it with symbols and stops on the first broken invariant. In a terminal, `run` with no `--plugin` asks which plugin to start, unless the workspace has only one. Pass `--plugin` and it does not ask.
 
@@ -309,7 +311,7 @@ ascend-forge version
 ascend-forge init --name png-tools --dir ./png-tools
 ascend-forge plugin new --name png-viewer --kind gui --lang lua --output library
 ascend-forge plugin validate --json --plugin ./plugins/png-viewer
-ascend-forge test --json ./plugins/png-viewer -run RejectsEmpty -v
+ascend-forge test --json ./plugins/png-viewer --run RejectsEmpty --verbose
 ascend-forge run --json --file ./request.json
 ascend-forge query --json ./plugins 'tag:image'
 ```
